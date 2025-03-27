@@ -41,7 +41,7 @@ make migrate.down
 
 ### Seeding Mock Data
 ```bash
-mysql -h 127.0.0.1 -p assignment < ./resources/mock/*.sql
+mysql -h 127.0.0.1 -p assignment < /path/to/mock/*.sql
 ```
 and enter mysql root password
 
