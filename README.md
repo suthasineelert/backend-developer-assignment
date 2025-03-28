@@ -1,8 +1,11 @@
 # Backend Developer Assignment
 
-<img src="https://img.shields.io/badge/Go-1.19+-00ADD8?style=for-the-badge&logo=go" alt="go version" />&nbsp;<a href="https://goreportcard.com/report/github.com/create-go-app/fiber-go-template" target="_blank"><img src="https://img.shields.io/badge/Go_report-A+-success?style=for-the-badge&logo=none" alt="go report" /></a>&nbsp;<img src="https://img.shields.io/badge/license-Apache_2.0-red?style=for-the-badge&logo=none" alt="license" />
+<img src="https://img.shields.io/badge/Go-1.23-00ADD8?style=for-the-badge&logo=go" alt="go version" />&nbsp;<a href="https://goreportcard.com/report/github.com/create-go-app/fiber-go-template" target="_blank">
 
 [Fiber](https://gofiber.io/) is an Express.js inspired web framework build on top of Fasthttp, the fastest HTTP engine for Go. Designed to ease things up for **fast** development with **zero memory allocation** and **performance** in mind.
+
+## TODO
+- Grouping route to different files
 
 ## ⚡️ Quick start
 1. Clone the repo
@@ -21,60 +24,81 @@
 make docker-compose.up
 ```
 
-5. Go to API Docs page (Swagger): [127.0.0.1:5000/swagger/index.html](http://127.0.0.1:5000/swagger/index.html)
+5. Go to API Docs page (Swagger): [http://localhost:8080/swagger/index.html](http://localhost:8080/swagger/index.html)
 
 
 ## Database Migration
 
 ### Apply migrations
 
-specify DATABASE_URL before running migrate command to specify database connection
+Database will be automatically migrated on startup.
+
+To apply migration manually, specify DATABASE_URL before running migrate command to specify database connection
 ```bash
 make migrate.up
 # or with DATABASE_URL
 DATABASE_URL="mysql://user:password@localhost:3306/dbname" make migrate.up
 ```
+
 ### Rollback migrations
 ```bash
 make migrate.down
 ```
 
+## Seeding Data
 ### Seeding Mock Data
 ```bash
 mysql -h 127.0.0.1 -p assignment < /path/to/mock/*.sql
 ```
 and enter mysql root password
 
-## 🗄 Template structure
+### Mock user pin data
+```
+make seed.pins
+```
+
+
+## Assumptions
+1. User already registered and has pin
+
+## 🗄 Project Structure
 
 ### ./app
 
-**Folder with business logic only**. This directory doesn't care about _what database driver you're using_ or _which caching solution your choose_ or any third-party things.
+**Folder with business logic only**. This directory contains the core business logic of the application, independent of external implementations.
 
 - `./app/controllers` folder for functional controllers (used in routes)
-- `./app/models` folder for describe business models and methods of your project
-- `./app/queries` folder for describe queries for models of your project
+- `./app/models` folder for business models representing database tables
+- `./app/queries` folder for database queries related to models
 
 ### ./docs
 
-**Folder with API Documentation**. This directory contains config files for auto-generated API Docs by Swagger.
+**Folder with API Documentation**. Contains Swagger configuration files for auto-generated API documentation.
 
 ### ./pkg
 
-**Folder with project-specific functionality**. This directory contains all the project-specific code tailored only for your business use case, like _configs_, _middleware_, _routes_ or _utils_.
+**Folder with project-specific functionality**. Contains code tailored for this specific application.
 
-- `./pkg/configs` folder for configuration functions
-- `./pkg/middleware` folder for add middleware (Fiber built-in and yours)
-- `./pkg/repository` folder for describe `const` of your project
-- `./pkg/routes` folder for describe routes of your project
-- `./pkg/utils` folder with utility functions (server starter, error checker, etc)
+- `./pkg/configs` folder for configuration functions (Fiber settings, etc.)
+- `./pkg/middleware` folder for HTTP middleware components
+- `./pkg/repository` folder for constants and repository interfaces
+- `./pkg/routes` folder for API route definitions
+- `./pkg/utils` folder with utility functions (server starter, connection URL builder, etc.)
 
 ### ./platform
 
-**Folder with platform-level logic**. This directory contains all the platform-level logic that will build up the actual project, like _setting up the database_ or _cache server instance_ and _storing migrations_.
+**Folder with platform-level logic**. Contains infrastructure code that connects the application to external services.
 
-- `./platform/database` folder with database setup functions (by default, PostgreSQL)
-- `./platform/migrations` folder with migration files (used with [golang-migrate/migrate](https://github.com/golang-migrate/migrate) tool)
+- `./platform/database` folder with MySQL database setup and connection functions
+- `./platform/migrations` folder with SQL migration files for database schema
+- `./platform/seeds` folder for database seed files to populate test data
+
+### ./resources
+
+**Folder with additional resources**. Contains supporting files for the application.
+
+- `./resources/schema.sql` contains the complete database schema definition
+
 
 ## ⚙️ Configuration
 

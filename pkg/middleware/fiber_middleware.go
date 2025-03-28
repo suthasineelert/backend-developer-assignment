@@ -14,7 +14,7 @@ func FiberMiddleware(a *fiber.App) {
 		cors.New(),
 		// Add simple logger.
 		logger.New(logger.Config{
-			Format:     "${time} | ${status} | ${latency} | ${method} | ${path}\n",
+			Format:     "${time} | ${path}\n",
 			TimeFormat: "2006-01-02 15:04:05",
 			TimeZone:   "UTC",
 		}),

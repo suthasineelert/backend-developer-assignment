@@ -3,7 +3,7 @@
 APP_NAME = backend-assignment
 BUILD_DIR = $(PWD)/build
 MIGRATIONS_FOLDER = $(PWD)/platform/migrations
-DATABASE_URL = mysql://mysql:mysql@localhost:3306/assignment
+DATABASE_URL = mysql://mysql:mysql@tcp(127.0.0.1:3306)/assignment
 
 clean:
 	rm -rf ./build
@@ -22,7 +22,8 @@ test: clean critic security lint
 	go tool cover -func=cover.out
 
 # build: test
-build:	CGO_ENABLED=0 go build -ldflags="-w -s" -o $(BUILD_DIR)/$(APP_NAME) main.go
+build:	
+	go build -o $(BUILD_DIR)/$(APP_NAME) main.go
 
 run: swag build
 	$(BUILD_DIR)/$(APP_NAME)
@@ -44,3 +45,6 @@ docker-compose.down:
 
 swag:
 	swag init
+
+seed.pins:
+	go run cmd/seed/seed.go
