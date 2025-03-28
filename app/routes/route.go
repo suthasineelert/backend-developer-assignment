@@ -9,8 +9,7 @@ import (
 func InitRoutes(app *fiber.App, controller *controllers.Controller) {
 	route := app.Group("/api/v1")
 
-	// Public routes
-	route.Post("/auth/verify-pin", controller.AuthController.VerifyPin)
+	AuthRoute(route, controller)
 
 	// route.Post("/book", middleware.JWTProtected(), controllers.CreateBook)
 
