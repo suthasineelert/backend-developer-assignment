@@ -35,11 +35,7 @@ func testResponse(t *testing.T, resp *http.Response, expectedCode int, expectedB
 	json.NewDecoder(resp.Body).Decode(&respBody)
 
 	if expectedCode == fiber.StatusOK {
-		assert.Contains(t, respBody, "tokens")
-		tokens, ok := respBody["tokens"].(map[string]interface{})
-		assert.True(t, ok)
-		assert.Contains(t, tokens, "access")
-		assert.Contains(t, tokens, "refresh")
+		assert.Contains(t, respBody, "access_token")
 	} else {
 		assert.Equal(t, expectedBody, respBody)
 	}
@@ -78,10 +74,7 @@ func TestVerifyPin_Success(t *testing.T) {
 
 	// Test response
 	expectedBody := map[string]interface{}{
-		"tokens": map[string]interface{}{
-			"access":  "",
-			"refresh": "",
-		},
+		"access_token": "",
 	}
 	testResponse(t, resp, fiber.StatusOK, expectedBody)
 
