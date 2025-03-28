@@ -3,11 +3,11 @@ package controllers
 import (
 	"backend-developer-assignment/app/controllers"
 	"backend-developer-assignment/app/models"
-	"backend-developer-assignment/app/queries"
+	mocks "backend-developer-assignment/pkg/mocks/services"
 	"backend-developer-assignment/pkg/utils"
-	"backend-developer-assignment/platform/database"
 	"bytes"
 	"encoding/json"
+	"errors"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -16,160 +16,145 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
 )
 
-// MockUserQueries is a mock implementation of the UserQueries interface
-type MockUserQueries struct {
-	mock.Mock
+// setupTest creates a new Fiber app, mock service, and controller for testing
+func setupTest() (*fiber.App, *mocks.MockUserService, *controllers.AuthController) {
+	app := fiber.New()
+	mockService := new(mocks.MockUserService)
+	authController := controllers.NewAuthController(mockService)
+	app.Post("/verify-pin", authController.VerifyPin)
+	return app, mockService, authController
 }
 
-func (m *MockUserQueries) GetUserByID(id string) (models.User, error) {
-	args := m.Called(id)
-	return args.Get(0).(models.User), args.Error(1)
+// testResponse tests the response from the API
+func testResponse(t *testing.T, resp *http.Response, expectedCode int, expectedBody map[string]interface{}) {
+	assert.Equal(t, expectedCode, resp.StatusCode)
+
+	var respBody map[string]interface{}
+	json.NewDecoder(resp.Body).Decode(&respBody)
+
+	if expectedCode == fiber.StatusOK {
+		assert.Contains(t, respBody, "tokens")
+		tokens, ok := respBody["tokens"].(map[string]interface{})
+		assert.True(t, ok)
+		assert.Contains(t, tokens, "access")
+		assert.Contains(t, tokens, "refresh")
+	} else {
+		assert.Equal(t, expectedBody, respBody)
+	}
 }
 
-func TestVerifyPin(t *testing.T) {
+func TestVerifyPin_Success(t *testing.T) {
 	// Set up environment for JWT
 	os.Setenv("JWT_SECRET_KEY", "test-secret-key")
 
-	// Create a new Fiber app
-	app := fiber.New()
+	// Setup test
+	app, mockService, _ := setupTest()
 
-	// Register the VerifyPin handler
-	app.Post("/api/auth/verify-pin", controllers.VerifyPin)
+	// Hash a PIN for testing
+	pin := "123456"
+	hashPin, _ := utils.HashPIN(pin)
+	userID := uuid.New().String()
 
-	hashPin, _ := utils.HashPIN("123456")
+	// Setup mock expectations
+	mockService.On("GetUserByID", userID).Return(&models.User{
+		UserID: uuid.MustParse(userID),
+		Name:   "Test User",
+		PIN:    hashPin,
+	}, nil)
 
-	// Test cases
-	tests := []struct {
-		description  string
-		setupMock    func(*MockUserQueries)
-		requestBody  map[string]string
-		expectedCode int
-		expectedBody map[string]interface{}
-	}{
-		{
-			description: "Valid PIN verification",
-			setupMock: func(mockQueries *MockUserQueries) {
-				// Create a user with a hashed PIN (123456)
-				userID := uuid.New().String()
-				mockQueries.On("GetUserByID", userID).Return(models.User{
-					UserID: uuid.MustParse(userID),
-					Name:   "Test User",
-					PIN:    hashPin,
-				}, nil)
-			},
-			requestBody: map[string]string{
-				"user_id": uuid.New().String(),
-				"pin":     "123456",
-			},
-			expectedCode: fiber.StatusOK,
-			expectedBody: map[string]interface{}{
-				"token": "", // We'll just check if it exists
-			},
-		},
-		{
-			description: "User not found",
-			setupMock: func(mockQueries *MockUserQueries) {
-				mockQueries.On("GetUserByID", mock.Anything).Return(models.User{}, fiber.NewError(fiber.StatusNotFound, "User not found"))
-			},
-			requestBody: map[string]string{
-				"user_id": uuid.New().String(),
-				"pin":     "123456",
-			},
-			expectedCode: fiber.StatusNotFound,
-			expectedBody: map[string]interface{}{
-				"error": true,
-				"msg":   "User does not exist",
-			},
-		},
-		{
-			description: "Invalid PIN",
-			setupMock: func(mockQueries *MockUserQueries) {
-				userID := uuid.New().String()
-				mockQueries.On("GetUserByID", userID).Return(models.User{
-					UserID: uuid.MustParse(userID),
-					Name:   "Test User",
-					PIN:    hashPin,
-				}, nil)
-			},
-			requestBody: map[string]string{
-				"user_id": uuid.New().String(),
-				"pin":     "wrong-pin",
-			},
-			expectedCode: fiber.StatusUnauthorized,
-			expectedBody: map[string]interface{}{
-				"error": true,
-				"msg":   "Invalid PIN",
-			},
+	// Create request
+	reqBody, _ := json.Marshal(map[string]string{
+		"user_id": userID,
+		"pin":     pin,
+	})
+	req := httptest.NewRequest(http.MethodPost, "/verify-pin", bytes.NewReader(reqBody))
+	req.Header.Set("Content-Type", "application/json")
+
+	// Test the endpoint
+	resp, err := app.Test(req)
+	assert.NoError(t, err)
+
+	// Test response
+	expectedBody := map[string]interface{}{
+		"tokens": map[string]interface{}{
+			"access":  "",
+			"refresh": "",
 		},
 	}
+	testResponse(t, resp, fiber.StatusOK, expectedBody)
 
-	// Run tests
-	for _, test := range tests {
-		t.Run(test.description, func(t *testing.T) {
-			// Create the mock object
-			mockUserQueries := new(MockUserQueries)
+	// Verify that all expected calls were made
+	mockService.AssertExpectations(t)
+}
 
-			// Setup the mock expectations
-			test.setupMock(mockUserQueries)
+func TestVerifyPin_UserNotFound(t *testing.T) {
+	// Setup test
+	app, mockService, _ := setupTest()
 
-			// Create a wrapper that satisfies the queries.UserQueries interface
-			userQueriesWrapper := &queries.UserQueries{
-				DB: nil, // We don't need a real DB for the tests
-			}
+	// Generate a user ID
+	userID := uuid.New().String()
 
-			// Replace the real DB function with our mock
-			originalDB := database.GetDB
-			database.GetDB = func() *database.Queries {
-				return &database.Queries{
-					UserQueries: userQueriesWrapper,
-					DB:          nil,
-				}
-			}
+	// Setup mock expectations
+	mockService.On("GetUserByID", userID).Return(nil, errors.New("user not found"))
 
-			// Override the GetUserByID method to use our mock
-			originalGetUserByID := userQueriesWrapper.GetUserByID
-			userQueriesWrapper.GetUserByID = func(id string) (models.User, error) {
-				return mockUserQueries.GetUserByID(id)
-			}
+	// Create request
+	reqBody, _ := json.Marshal(map[string]string{
+		"user_id": userID,
+		"pin":     "123456",
+	})
+	req := httptest.NewRequest(http.MethodPost, "/verify-pin", bytes.NewReader(reqBody))
+	req.Header.Set("Content-Type", "application/json")
 
-			// Restore original functions after test
-			defer func() {
-				database.GetDB = originalDB
-				if originalGetUserByID != nil {
-					userQueriesWrapper.GetUserByID = originalGetUserByID
-				}
-			}()
+	// Test the endpoint
+	resp, err := app.Test(req)
+	assert.NoError(t, err)
 
-			// Create request
-			reqBody, _ := json.Marshal(test.requestBody)
-			req := httptest.NewRequest(http.MethodPost, "/api/auth/verify-pin", bytes.NewReader(reqBody))
-			req.Header.Set("Content-Type", "application/json")
-
-			// Test the endpoint
-			resp, err := app.Test(req)
-			assert.NoError(t, err)
-
-			// Check status code
-			assert.Equal(t, test.expectedCode, resp.StatusCode)
-
-			// Parse response body
-			var respBody map[string]interface{}
-			json.NewDecoder(resp.Body).Decode(&respBody)
-
-			// For successful responses, just check if token exists
-			if test.expectedCode == fiber.StatusOK {
-				assert.Contains(t, respBody, "token")
-				assert.NotEmpty(t, respBody["token"])
-			} else {
-				// For error responses, check the exact response
-				assert.Equal(t, test.expectedBody, respBody)
-			}
-
-			// Verify that all expected mock calls were made
-			mockUserQueries.AssertExpectations(t)
-		})
+	// Test response
+	expectedBody := map[string]interface{}{
+		"message": "User does not exist",
 	}
+	testResponse(t, resp, fiber.StatusNotFound, expectedBody)
+
+	// Verify that all expected calls were made
+	mockService.AssertExpectations(t)
+}
+
+func TestVerifyPin_InvalidPIN(t *testing.T) {
+	// Setup test
+	app, mockService, _ := setupTest()
+
+	// Hash a PIN for testing
+	pin := "123456"
+	hashPin, _ := utils.HashPIN(pin)
+	userID := uuid.New().String()
+
+	// Setup mock expectations
+	mockService.On("GetUserByID", userID).Return(&models.User{
+		UserID: uuid.MustParse(userID),
+		Name:   "Test User",
+		PIN:    hashPin,
+	}, nil)
+
+	// Create request with wrong PIN
+	reqBody, _ := json.Marshal(map[string]string{
+		"user_id": userID,
+		"pin":     "wrong-pin",
+	})
+	req := httptest.NewRequest(http.MethodPost, "/verify-pin", bytes.NewReader(reqBody))
+	req.Header.Set("Content-Type", "application/json")
+
+	// Test the endpoint
+	resp, err := app.Test(req)
+	assert.NoError(t, err)
+
+	// Test response
+	expectedBody := map[string]interface{}{
+		"message": "Invalid PIN",
+	}
+	testResponse(t, resp, fiber.StatusUnauthorized, expectedBody)
+
+	// Verify that all expected calls were made
+	mockService.AssertExpectations(t)
 }
