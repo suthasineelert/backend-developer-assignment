@@ -4,13 +4,10 @@ import (
 	"backend-developer-assignment/app/models"
 	"backend-developer-assignment/app/services"
 	"backend-developer-assignment/pkg/base"
-	"backend-developer-assignment/pkg/middleware"
 
 	fiber "github.com/gofiber/fiber/v2"
 	"go.uber.org/zap"
 )
-
-var logger = middleware.GetLogger()
 
 // UserController holds the services related to users.
 type UserController struct {

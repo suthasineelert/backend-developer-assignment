@@ -27,6 +27,26 @@ make docker-compose.up
 
 5. Go to API Docs page (Swagger): [http://localhost:8080/swagger/index.html](http://localhost:8080/swagger/index.html)
 
+## API Functionality
+- [x] Verify User Pin
+- [x] Get User Profile
+- [x] Update User Profile
+- [x] Get User Greeting
+- [x] Update User Greeting
+- [] Get User Transaction
+- [] Add Money to Account
+- [] Withdraw Money from Account
+- [] List Account
+- [] Get Account
+- [] Update Main Account
+- [] Update Account (Name, Color)
+- [] List Debit Card
+- [] Create Debit Card
+- [] Get Banner
+
+
+## Updated Schema
+- Add column `pin` to `users` table
 
 ## Database Migration
 
@@ -44,6 +64,11 @@ DATABASE_URL="mysql://user:password@localhost:3306/dbname" make migrate.up
 ### Rollback migrations
 ```bash
 make migrate.down
+```
+
+### Create new migration
+```bash
+migrate create -ext sql -dir platform/migrations -seq create_users_table
 ```
 
 ## Seeding Data
@@ -110,12 +135,6 @@ Create mocks
 - `./platform/database` folder with MySQL database setup and connection functions
 - `./platform/migrations` folder with SQL migration files for database schema
 - `./platform/seeds` folder for database seed files to populate test data
-
-### ./resources
-
-**Folder with additional resources**. Contains supporting files for the application.
-
-- `./resources/schema.sql` contains the complete database schema definition
 
 
 ## ⚙️ Configuration
