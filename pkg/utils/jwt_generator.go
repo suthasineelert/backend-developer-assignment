@@ -1,15 +1,25 @@
 package utils
 
 import (
+	"crypto/sha256"
+	"encoding/hex"
+	"fmt"
 	"os"
 	"strconv"
+	"strings"
 	"time"
 
 	jwt "github.com/golang-jwt/jwt/v5"
 )
 
+// Tokens struct to describe tokens object.
+type Tokens struct {
+	Access  string
+	Refresh string
+}
+
 // GenerateNewTokens func for generate a new Access & Refresh tokens.
-func GenerateNewTokens(id string) (*string, error) {
+func GenerateNewTokens(id string) (*Tokens, error) {
 	// Generate JWT Access token.
 	accessToken, err := generateNewAccessToken(id)
 	if err != nil {
@@ -17,7 +27,17 @@ func GenerateNewTokens(id string) (*string, error) {
 		return nil, err
 	}
 
-	return &accessToken, nil
+	// Generate JWT Refresh token.
+	refreshToken, err := generateNewRefreshToken()
+	if err != nil {
+		// Return token generation error.
+		return nil, err
+	}
+
+	return &Tokens{
+		Access:  accessToken,
+		Refresh: refreshToken,
+	}, nil
 }
 
 func generateNewAccessToken(id string) (string, error) {
@@ -45,4 +65,35 @@ func generateNewAccessToken(id string) (string, error) {
 	}
 
 	return t, nil
+}
+
+func generateNewRefreshToken() (string, error) {
+	// Create a new SHA256 hash.
+	hash := sha256.New()
+
+	// Create a new now date and time string with salt.
+	refresh := os.Getenv("JWT_REFRESH_KEY") + time.Now().String()
+
+	// See: https://pkg.go.dev/io#Writer.Write
+	_, err := hash.Write([]byte(refresh))
+	if err != nil {
+		// Return error, it refresh token generation failed.
+		return "", err
+	}
+
+	// Set expires hours count for refresh key from .env file.
+	hoursCount, _ := strconv.Atoi(os.Getenv("JWT_REFRESH_KEY_EXPIRE_HOURS_COUNT"))
+
+	// Set expiration time.
+	expireTime := fmt.Sprint(time.Now().Add(time.Hour * time.Duration(hoursCount)).Unix())
+
+	// Create a new refresh token (sha256 string with salt + expire time).
+	t := hex.EncodeToString(hash.Sum(nil)) + "." + expireTime
+
+	return t, nil
+}
+
+// ParseRefreshToken func for parse second argument from refresh token.
+func ParseRefreshToken(refreshToken string) (int64, error) {
+	return strconv.ParseInt(strings.Split(refreshToken, ".")[1], 0, 64)
 }

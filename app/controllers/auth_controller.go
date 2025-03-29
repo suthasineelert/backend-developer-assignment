@@ -72,6 +72,9 @@ func (c *AuthController) VerifyPin(ctx *fiber.Ctx) error {
 	}
 
 	return ctx.JSON(fiber.Map{
-		"access_token": token,
+		"tokens": fiber.Map{
+			"access":  token.Access,
+			"refresh": token.Refresh,
+		},
 	})
 }

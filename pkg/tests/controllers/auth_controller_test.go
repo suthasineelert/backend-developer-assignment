@@ -45,7 +45,11 @@ func (s *AuthControllerTestSuite) testResponse(resp *http.Response, expectedCode
 	json.NewDecoder(resp.Body).Decode(&respBody)
 
 	if expectedCode == fiber.StatusOK {
-		s.Contains(respBody, "access_token")
+		s.Contains(respBody, "tokens")
+		tokens, ok := respBody["tokens"].(map[string]interface{})
+		s.True(ok)
+		s.Contains(tokens, "access")
+		s.Contains(tokens, "refresh")
 	} else {
 		s.Equal(expectedBody, respBody)
 	}
@@ -79,7 +83,10 @@ func (s *AuthControllerTestSuite) TestVerifyPin_Success() {
 
 	// Expected response
 	expectedBody := map[string]interface{}{
-		"access_token": "",
+		"tokens": map[string]interface{}{
+			"access":  "",
+			"refresh": "",
+		},
 	}
 	s.testResponse(resp, fiber.StatusOK, expectedBody)
 
