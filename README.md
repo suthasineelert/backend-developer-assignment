@@ -71,15 +71,9 @@ Install mockery
 go install github.com/vektra/mockery/v2@latest
 ```
 
-Create mock for repository
+Create mocks
 ```bash
- mockery --dir=app/repositories --name=UserRepository --filename=user_repository.go --output=pkg/mocks/repositories --outpkg=mocks
- mockery --dir=app/repositories --name=UserGreetingRepository --filename=user_greeting_repository.go --output=pkg/mocks/repositories --outpkg=mocks
-```
-
-Create mock for service
-```bash
- mockery --dir=app/services --name=UserService --filename=user_service.go --output=pkg/mocks/services --outpkg=mocks
+ make mock.generate
 ```
 
 ## Assumptions

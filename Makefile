@@ -48,3 +48,6 @@ swag:
 
 seed.pins:
 	go run cmd/seed/seed.go
+
+mock.generate:
+	mockery --dir=app/services --output=pkg/mocks/services --outpkg=mocks --case=snake --all && mockery --dir=app/repositories --output=pkg/mocks/repositories --outpkg=mocks --case=snake --all
