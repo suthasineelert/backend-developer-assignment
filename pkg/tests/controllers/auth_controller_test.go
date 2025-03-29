@@ -15,6 +15,7 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 )
 
@@ -23,6 +24,20 @@ type AuthControllerTestSuite struct {
 	suite.Suite
 	app         *fiber.App
 	mockService *mocks.UserService
+	userID      string
+	tokens      *utils.Tokens
+}
+
+// SetupSuite runs once before all tests
+func (s *AuthControllerTestSuite) SetupSuite() {
+	// Set up environment for JWT
+	os.Setenv("JWT_SECRET_KEY", "test-secret-key")
+	os.Setenv("JWT_SECRET_KEY_EXPIRE_MINUTES_COUNT", "15")
+	os.Setenv("JWT_REFRESH_KEY", "test-refresh-key")
+	os.Setenv("JWT_REFRESH_KEY_EXPIRE_HOURS_COUNT", "720")
+
+	// Generate a user ID for testing
+	s.userID = uuid.New().String()
 }
 
 // SetupTest runs before each test case
@@ -32,9 +47,12 @@ func (s *AuthControllerTestSuite) SetupTest() {
 
 	authController := controllers.NewAuthController(s.mockService)
 	s.app.Post("/verify-pin", authController.VerifyPin)
+	s.app.Post("/token/renew", authController.RenewTokens)
 
-	// Set up environment variable for JWT
-	os.Setenv("JWT_SECRET_KEY", "test-secret-key")
+	// Generate tokens for testing
+	var err error
+	s.tokens, err = utils.GenerateNewTokens(s.userID)
+	s.Require().NoError(err)
 }
 
 // Helper function to test response
@@ -155,6 +173,111 @@ func (s *AuthControllerTestSuite) TestVerifyPin_InvalidPIN() {
 		"message": "Invalid PIN",
 	}
 	s.testResponse(resp, fiber.StatusUnauthorized, expectedBody)
+
+	// Verify expected method calls
+	s.mockService.AssertExpectations(s.T())
+}
+
+// TestRenewTokens_Success tests successful token renewal
+func (s *AuthControllerTestSuite) TestRenewTokens_Success() {
+	// Setup mock expectations
+	s.mockService.On("GetUserByID", s.userID).Return(&models.User{
+		UserID: uuid.MustParse(s.userID),
+		Name:   "Test User",
+	}, nil)
+
+	// Create request body
+	reqBody, _ := json.Marshal(models.Renew{
+		RefreshToken: s.tokens.Refresh,
+	})
+
+	// Create request
+	req := httptest.NewRequest(http.MethodPost, "/token/renew", bytes.NewReader(reqBody))
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", "Bearer "+s.tokens.Access)
+
+	// Test the endpoint
+	resp, err := s.app.Test(req)
+	s.NoError(err)
+
+	// Check status code
+	s.Equal(fiber.StatusOK, resp.StatusCode)
+
+	// Parse response body
+	var respBody map[string]interface{}
+	json.NewDecoder(resp.Body).Decode(&respBody)
+
+	// Check response structure
+	s.Contains(respBody, "tokens")
+	tokens, ok := respBody["tokens"].(map[string]interface{})
+	s.True(ok)
+	s.Contains(tokens, "access")
+	s.Contains(tokens, "refresh")
+
+	// Verify expected method calls
+	s.mockService.AssertExpectations(s.T())
+}
+
+// TestRenewTokens_InvalidRefreshToken tests renewal with invalid refresh token
+func (s *AuthControllerTestSuite) TestRenewTokens_InvalidRefreshToken() {
+	// Create request body with invalid refresh token
+	reqBody, _ := json.Marshal(models.Renew{
+		RefreshToken: "invalid-refresh-token",
+	})
+
+	// Create request
+	req := httptest.NewRequest(http.MethodPost, "/token/renew", bytes.NewReader(reqBody))
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", "Bearer "+s.tokens.Access)
+
+	// Test the endpoint
+	resp, err := s.app.Test(req)
+	s.NoError(err)
+
+	// Check status code - should be bad request for invalid token
+	s.Equal(fiber.StatusBadRequest, resp.StatusCode)
+}
+
+// TestRenewTokens_MissingAccessToken tests renewal without access token
+func (s *AuthControllerTestSuite) TestRenewTokens_MissingAccessToken() {
+	// Create request body
+	reqBody, _ := json.Marshal(models.Renew{
+		RefreshToken: s.tokens.Refresh,
+	})
+
+	// Create request without Authorization header
+	req := httptest.NewRequest(http.MethodPost, "/token/renew", bytes.NewReader(reqBody))
+	req.Header.Set("Content-Type", "application/json")
+
+	// Test the endpoint
+	resp, err := s.app.Test(req)
+	s.NoError(err)
+
+	// Check status code - should be unauthorized or internal server error
+	s.True(resp.StatusCode == fiber.StatusUnauthorized || resp.StatusCode == fiber.StatusInternalServerError)
+}
+
+// TestRenewTokens_UserNotFound tests renewal when user is not found
+func (s *AuthControllerTestSuite) TestRenewTokens_UserNotFound() {
+	// Setup mock expectations - user not found
+	s.mockService.On("GetUserByID", s.userID).Return(nil, assert.AnError)
+
+	// Create request body
+	reqBody, _ := json.Marshal(models.Renew{
+		RefreshToken: s.tokens.Refresh,
+	})
+
+	// Create request
+	req := httptest.NewRequest(http.MethodPost, "/token/renew", bytes.NewReader(reqBody))
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", "Bearer "+s.tokens.Access)
+
+	// Test the endpoint
+	resp, err := s.app.Test(req)
+	s.NoError(err)
+
+	// Check status code
+	s.Equal(fiber.StatusNotFound, resp.StatusCode)
 
 	// Verify expected method calls
 	s.mockService.AssertExpectations(s.T())

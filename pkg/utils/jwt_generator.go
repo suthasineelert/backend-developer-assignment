@@ -95,5 +95,18 @@ func generateNewRefreshToken() (string, error) {
 
 // ParseRefreshToken func for parse second argument from refresh token.
 func ParseRefreshToken(refreshToken string) (int64, error) {
-	return strconv.ParseInt(strings.Split(refreshToken, ".")[1], 0, 64)
+	// Split the refresh token by dot
+	parts := strings.Split(refreshToken, ".")
+
+	if len(parts) != 2 {
+		return 0, fmt.Errorf("invalid refresh token format")
+	}
+
+	// Parse the expiration time
+	expiry, err := strconv.ParseInt(parts[1], 10, 64)
+	if err != nil {
+		return 0, fmt.Errorf("invalid expiration time in refresh token: %w", err)
+	}
+
+	return expiry, nil
 }

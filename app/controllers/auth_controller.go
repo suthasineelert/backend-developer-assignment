@@ -6,6 +6,7 @@ import (
 	"backend-developer-assignment/pkg/base"
 	"backend-developer-assignment/pkg/utils"
 	"fmt"
+	"time"
 
 	fiber "github.com/gofiber/fiber/v2"
 )
@@ -77,4 +78,95 @@ func (c *AuthController) VerifyPin(ctx *fiber.Ctx) error {
 			"refresh": token.Refresh,
 		},
 	})
+}
+
+// RenewTokens method for renew access and refresh tokens.
+// @Description Renew access and refresh tokens.
+// @Summary renew access and refresh tokens
+// @Tags Token
+// @Accept json
+// @Produce json
+// @Param refresh_token body string true "Refresh token"
+// @Success 200 {string} status "ok"
+// @Security ApiKeyAuth
+// @Router /v1/token/renew [post]
+func (c *AuthController) RenewTokens(ctx *fiber.Ctx) error {
+	// Get now time.
+	now := time.Now().Unix()
+
+	// Get claims from JWT.
+	claims, err := utils.ExtractTokenMetadata(ctx)
+	if err != nil {
+		// Return status 500 and JWT parse error.
+		return ctx.Status(fiber.StatusInternalServerError).JSON(base.ErrorResponse{
+			Message: err.Error(),
+		})
+	}
+
+	// Set expiration time from JWT data of current user.
+	expiresAccessToken := claims.Expires
+
+	// Checking, if now time greather than Access token expiration time.
+	if now > expiresAccessToken {
+		// Return status 401 and unauthorized error message.
+		return ctx.Status(fiber.StatusUnauthorized).JSON(base.ErrorResponse{
+			Message: "unauthorized, check expiration time of your token",
+		})
+	}
+
+	// Create a new renew refresh token struct.
+	renew := &models.Renew{}
+
+	// Checking received data from JSON body.
+	if err := ctx.BodyParser(renew); err != nil {
+		// Return, if JSON data is not correct.
+		return ctx.Status(fiber.StatusBadRequest).JSON(base.ErrorResponse{
+			Message: err.Error(),
+		})
+	}
+
+	// Set expiration time from Refresh token of current user.
+	expiresRefreshToken, err := utils.ParseRefreshToken(renew.RefreshToken)
+	if err != nil {
+		// Return status 400 and error message.
+		return ctx.Status(fiber.StatusBadRequest).JSON(base.ErrorResponse{
+			Message: err.Error(),
+		})
+	}
+
+	// Checking, if now time greather than Refresh token expiration time.
+	if now < expiresRefreshToken {
+		// Define user ID.
+		userID := claims.UserID
+
+		// Get user by ID.
+		_, err = c.UserService.GetUserByID(userID.String())
+		if err != nil {
+			// Return, if user not found.
+			return ctx.Status(fiber.StatusNotFound).JSON(base.ErrorResponse{
+				Message: "user not found",
+			})
+		}
+
+		// Generate JWT Access & Refresh tokens.
+		tokens, err := utils.GenerateNewTokens(userID.String())
+		if err != nil {
+			// Return status 500 and token generation error.
+			return ctx.Status(fiber.StatusInternalServerError).JSON(base.ErrorResponse{
+				Message: err.Error(),
+			})
+		}
+
+		return ctx.JSON(fiber.Map{
+			"tokens": fiber.Map{
+				"access":  tokens.Access,
+				"refresh": tokens.Refresh,
+			},
+		})
+	} else {
+		// Return status 401 and unauthorized error message.
+		return ctx.Status(fiber.StatusUnauthorized).JSON(base.ErrorResponse{
+			Message: "unauthorized, your session was ended earlier",
+		})
+	}
 }
