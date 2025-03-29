@@ -33,20 +33,29 @@ make docker-compose.up
 - [x] Update User Profile
 - [x] Get User Greeting
 - [x] Update User Greeting
-- [] Get User Transaction
+- [x] Get User Transaction
 - [] Add Money to Account
 - [] Withdraw Money from Account
 - [] List Account
 - [] Get Account
 - [] Update Main Account
-- [] Update Account (Name, Color)
-- [] List Debit Card
-- [] Create Debit Card
+- [] Update Account (Name, Color, Border Color)
+- [x] List Debit Card
+- [x] Update Debit Card (Name, Color, Border Color)
+- [x] Create Debit Card
+- [x] Delete Debit Card
 - [] Get Banner
 
+## TODO
+- [] Unit test for all apis
+- [] Optimized services latency (optional)
+- [] Optimized database schema (optional)
+- [] Including services stress test report such as locust, k6 (optional)
 
 ## Updated Schema
 - Add column `pin` to `users` table
+- Add column `created_at`, `updated_at`, `amount`, `transaction_type` to `transactions` table to log transaction history, type is `debit`, `withdrawal`, or `transfer`
+- Add column `created_at`, `updated_at`, `deleted_at` to `debit_cards` table to handle soft delete
 
 ## Database Migration
 
