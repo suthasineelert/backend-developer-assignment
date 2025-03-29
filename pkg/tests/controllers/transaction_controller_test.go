@@ -54,8 +54,10 @@ func (s *TransactionControllerTestSuite) TestListTransactions_Success() {
 			Name:            "Test Transaction 1",
 			Amount:          100.00,
 			TransactionType: "deposit",
-			CreatedAt:       time.Now(),
-			UpdatedAt:       time.Now(),
+			BaseModel: &models.BaseModel{
+				CreatedAt: time.Now(),
+				UpdatedAt: time.Now(),
+			},
 		},
 		{
 			TransactionID:   "000018b0e1a211ef95a30242ac180004",
@@ -63,8 +65,10 @@ func (s *TransactionControllerTestSuite) TestListTransactions_Success() {
 			Name:            "Test Transaction 2",
 			Amount:          200.00,
 			TransactionType: "withdrawal",
-			CreatedAt:       time.Now(),
-			UpdatedAt:       time.Now(),
+			BaseModel: &models.BaseModel{
+				CreatedAt: time.Now(),
+				UpdatedAt: time.Now(),
+			},
 		},
 	}
 	mockTotal := 2
@@ -73,7 +77,7 @@ func (s *TransactionControllerTestSuite) TestListTransactions_Success() {
 	s.mockTransactionService.On("GetTransactionsByUserID", s.testUserID, 1).Return(mockTransactions, mockTotal, nil)
 
 	// Create request
-	req := httptest.NewRequest(http.MethodGet, "/transactions", nil)
+	req := httptest.NewRequest(http.MethodGet, "/transactions", http.NoBody)
 	req.Header.Set("Authorization", "Bearer "+s.testToken)
 
 	// Test the endpoint
@@ -108,8 +112,10 @@ func (s *TransactionControllerTestSuite) TestListTransactions_WithPagination() {
 			Name:            "Test Transaction 3",
 			Amount:          300.00,
 			TransactionType: "deposit",
-			CreatedAt:       time.Now(),
-			UpdatedAt:       time.Now(),
+			BaseModel: &models.BaseModel{
+				CreatedAt: time.Now(),
+				UpdatedAt: time.Now(),
+			},
 		},
 	}
 	mockTotal := 3 // Total of 3 transactions, but only returning 1 for page 2
@@ -118,7 +124,7 @@ func (s *TransactionControllerTestSuite) TestListTransactions_WithPagination() {
 	s.mockTransactionService.On("GetTransactionsByUserID", s.testUserID, 2).Return(mockTransactions, mockTotal, nil)
 
 	// Create request with page parameter
-	req := httptest.NewRequest(http.MethodGet, "/transactions?page=2", nil)
+	req := httptest.NewRequest(http.MethodGet, "/transactions?page=2", http.NoBody)
 	req.Header.Set("Authorization", "Bearer "+s.testToken)
 
 	// Test the endpoint
@@ -150,7 +156,7 @@ func (s *TransactionControllerTestSuite) TestListTransactions_InvalidPage() {
 	s.mockTransactionService.On("GetTransactionsByUserID", s.testUserID, 1).Return(mockTransactions, mockTotal, nil)
 
 	// Create request with invalid page parameter
-	req := httptest.NewRequest(http.MethodGet, "/transactions?page=invalid", nil)
+	req := httptest.NewRequest(http.MethodGet, "/transactions?page=invalid", http.NoBody)
 	req.Header.Set("Authorization", "Bearer "+s.testToken)
 
 	// Test the endpoint
@@ -168,7 +174,7 @@ func (s *TransactionControllerTestSuite) TestListTransactions_ServiceError() {
 		Return(nil, 0, errors.New("database error"))
 
 	// Create request
-	req := httptest.NewRequest(http.MethodGet, "/transactions", nil)
+	req := httptest.NewRequest(http.MethodGet, "/transactions", http.NoBody)
 	req.Header.Set("Authorization", "Bearer "+s.testToken)
 
 	// Test the endpoint
@@ -192,7 +198,7 @@ func (s *TransactionControllerTestSuite) TestListTransactions_ServiceError() {
 
 func (s *TransactionControllerTestSuite) TestListTransactions_Unauthorized() {
 	// Create request without auth token
-	req := httptest.NewRequest(http.MethodGet, "/transactions", nil)
+	req := httptest.NewRequest(http.MethodGet, "/transactions", http.NoBody)
 
 	// Test the endpoint
 	resp, err := s.app.Test(req)

@@ -15,8 +15,8 @@ type DebitCardRepository interface {
 	GetCardDetailByID(cardID string) (*models.DebitCardDetail, error)
 	GetCardDesignByID(cardID string) (*models.DebitCardDesign, error)
 	GetCardStatusByID(cardID string) (*models.DebitCardStatus, error)
-	GetCardWithDetailByID(cardID string) (*models.DebitCardWithDetail, error)
-	GetCardWithDetailByUserID(userID string) ([]*models.DebitCardWithDetail, error)
+	GetCardWithDetailByID(cardID string) (*models.DebitCardWithDetails, error)
+	GetCardWithDetailByUserID(userID string) ([]*models.DebitCardWithDetails, error)
 
 	// Update Card operations
 	UpdateCardTx(tx DBTransaction, card *models.DebitCard) error
@@ -52,8 +52,8 @@ func NewDebitCardRepository(db *sqlx.DB) DebitCardRepository {
 }
 
 // GetCardWithDetailByID retrieves a complete debit card with all related information by ID
-func (r *DebitCardRepositoryImpl) GetCardWithDetailByID(cardID string) (*models.DebitCardWithDetail, error) {
-	card := &models.DebitCardWithDetail{}
+func (r *DebitCardRepositoryImpl) GetCardWithDetailByID(cardID string) (*models.DebitCardWithDetails, error) {
+	card := &models.DebitCardWithDetails{}
 
 	query := `
 		SELECT 
@@ -82,8 +82,8 @@ func (r *DebitCardRepositoryImpl) GetCardWithDetailByID(cardID string) (*models.
 }
 
 // GetCardWithDetailByUserID retrieves all complete debit cards with related information for a user
-func (r *DebitCardRepositoryImpl) GetCardWithDetailByUserID(userID string) ([]*models.DebitCardWithDetail, error) {
-	cards := []*models.DebitCardWithDetail{}
+func (r *DebitCardRepositoryImpl) GetCardWithDetailByUserID(userID string) ([]*models.DebitCardWithDetails, error) {
+	cards := []*models.DebitCardWithDetails{}
 
 	query := `
 		SELECT 
@@ -226,11 +226,10 @@ func (r *DebitCardRepositoryImpl) GetCardStatusByID(cardID string) (*models.Debi
 // UpdateCardStatus updates existing card status
 func (r *DebitCardRepositoryImpl) UpdateCardStatus(status *models.DebitCardStatus) error {
 	query := `UPDATE debit_card_status 
-              SET user_id = ?, status = ? 
+              SET status = ? 
               WHERE card_id = ?`
 	_, err := r.DB.Exec(
 		query,
-		status.UserID,
 		status.Status,
 		status.CardID,
 	)

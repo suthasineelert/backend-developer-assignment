@@ -3,10 +3,9 @@ package controllers
 import (
 	"backend-developer-assignment/app/models"
 	"backend-developer-assignment/app/services"
-	"backend-developer-assignment/pkg/base"
 	"strconv"
 
-	"github.com/gofiber/fiber/v2"
+	fiber "github.com/gofiber/fiber/v2"
 	"go.uber.org/zap"
 )
 
@@ -51,9 +50,7 @@ func (c *TransactionController) ListTransactions(ctx *fiber.Ctx) error {
 	transactions, total, err := c.TransactionService.GetTransactionsByUserID(userID, page)
 	if err != nil {
 		logger.Error("Failed to get transactions", zap.String("user_id", userID), zap.Error(err))
-		return ctx.Status(fiber.StatusInternalServerError).JSON(base.ErrorResponse{
-			Message: "Failed to retrieve transactions",
-		})
+		return ErrorResponse(ctx, fiber.StatusInternalServerError, "Failed to retrieve transactions")
 	}
 
 	return ctx.JSON(listTransactionResponse{

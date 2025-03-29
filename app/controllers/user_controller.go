@@ -3,7 +3,6 @@ package controllers
 import (
 	"backend-developer-assignment/app/models"
 	"backend-developer-assignment/app/services"
-	"backend-developer-assignment/pkg/base"
 
 	fiber "github.com/gofiber/fiber/v2"
 	"go.uber.org/zap"
@@ -46,9 +45,7 @@ func (c *UserController) GetUserGreeting(ctx *fiber.Ctx) error {
 	greeting, err := c.UserService.GetUserGreetingByID(userID)
 	if err != nil {
 		logger.Info("Failed to get user greeting", zap.String("user_id", userID), zap.Error(err))
-		return ctx.Status(fiber.StatusNotFound).JSON(base.ErrorResponse{
-			Message: "User greeting not found",
-		})
+		return ErrorResponse(ctx, fiber.StatusNotFound, "User greeting not found")
 	}
 
 	return ctx.JSON(getUserGreetingResponse{
@@ -85,9 +82,7 @@ func (c *UserController) UpdateUserGreeting(ctx *fiber.Ctx) error {
 	var request updateUserGreetingRequest
 	if err := ctx.BodyParser(&request); err != nil {
 		logger.Info("Failed to parse request body", zap.Error(err))
-		return ctx.Status(fiber.StatusBadRequest).JSON(base.ErrorResponse{
-			Message: "Invalid input format: " + err.Error(),
-		})
+		return ErrorResponse(ctx, fiber.StatusBadRequest, "Invalid input format: "+err.Error())
 	}
 
 	var greeting models.UserGreeting
@@ -97,9 +92,7 @@ func (c *UserController) UpdateUserGreeting(ctx *fiber.Ctx) error {
 	err := c.UserService.UpdateUserGreeting(&greeting)
 	if err != nil {
 		logger.Error("Failed to update user greeting", zap.Error(err))
-		return ctx.Status(fiber.StatusNotFound).JSON(base.ErrorResponse{
-			Message: "Fail to update user greeting",
-		})
+		return ErrorResponse(ctx, fiber.StatusNotFound, "Fail to update user greeting")
 	}
 
 	return ctx.JSON(updateUserGreetingResponse{
@@ -125,9 +118,7 @@ func (c *UserController) GetUser(ctx *fiber.Ctx) error {
 
 	user, err := c.UserService.GetUserByID(userID)
 	if err != nil {
-		return ctx.Status(fiber.StatusNotFound).JSON(base.ErrorResponse{
-			Message: "User not found",
-		})
+		return ErrorResponse(ctx, fiber.StatusNotFound, "User not found")
 	}
 
 	return ctx.JSON(user)
@@ -143,9 +134,7 @@ func (c *UserController) UpdateUser(ctx *fiber.Ctx) error {
 	var request updateUserRequest
 	if err := ctx.BodyParser(&request); err != nil {
 		logger.Info("Failed to parse request body", zap.Error(err))
-		return ctx.Status(fiber.StatusBadRequest).JSON(base.ErrorResponse{
-			Message: "Invalid input format: " + err.Error(),
-		})
+		return ErrorResponse(ctx, fiber.StatusBadRequest, "Invalid input format: "+err.Error())
 	}
 
 	logger.Info("Update user", zap.String("user_id", userID), zap.String("name", request.Name))
@@ -156,9 +145,7 @@ func (c *UserController) UpdateUser(ctx *fiber.Ctx) error {
 
 	err := c.UserService.UpdateUser(&user)
 	if err != nil {
-		return ctx.Status(fiber.StatusNotFound).JSON(base.ErrorResponse{
-			Message: "User not found",
-		})
+		return ErrorResponse(ctx, fiber.StatusNotFound, "User not found")
 	}
 
 	return ctx.JSON(user)

@@ -114,7 +114,7 @@ func (r *TransactionRepositoryImpl) Update(transaction *models.Transaction) erro
 	query := `UPDATE transactions 
               SET user_id = ?, name = ?, image = ?, isBank = ?, amount = ?, 
                   transaction_type = ?, updated_at = ? 
-              WHERE transaction_id = ?`
+              WHERE transaction_id = ? and deleted_at IS NULL`
 
 	_, err := r.DB.Exec(
 		query,

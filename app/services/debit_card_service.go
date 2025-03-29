@@ -12,12 +12,11 @@ type DebitCardService interface {
 	// Card operations
 	GetCardByID(cardID string) (*models.DebitCard, error)
 	GetCardsByUserID(userID string) ([]*models.DebitCard, error)
-	GetCardWithDetailByID(cardID string) (*models.DebitCardWithDetail, error)
-	GetCardWithDetailByUserID(userID string) ([]*models.DebitCardWithDetail, error)
+	GetCardWithDetailByID(cardID string) (*models.DebitCardWithDetails, error)
+	GetCardWithDetailByUserID(userID string) ([]*models.DebitCardWithDetails, error)
 
 	// Create operations
-	CreateCardWithDetails(card *models.DebitCard, detail *models.DebitCardDetail,
-		design *models.DebitCardDesign, status *models.DebitCardStatus) error
+	CreateCardWithDetails(card *models.DebitCardWithDetails) error
 
 	// Update operations
 	UpdateCard(card *models.DebitCard, name, color, borderColor string) error
@@ -49,33 +48,21 @@ func (s *DebitCardServiceImpl) GetCardsByUserID(userID string) ([]*models.DebitC
 }
 
 // GetCardWithDetailByID retrieves a complete debit card with all related information by ID
-func (s *DebitCardServiceImpl) GetCardWithDetailByID(cardID string) (*models.DebitCardWithDetail, error) {
+func (s *DebitCardServiceImpl) GetCardWithDetailByID(cardID string) (*models.DebitCardWithDetails, error) {
 	return s.debitCardRepository.GetCardWithDetailByID(cardID)
 }
 
 // GetCardWithDetailByUserID retrieves all complete debit cards with related information for a user
-func (s *DebitCardServiceImpl) GetCardWithDetailByUserID(userID string) ([]*models.DebitCardWithDetail, error) {
+func (s *DebitCardServiceImpl) GetCardWithDetailByUserID(userID string) ([]*models.DebitCardWithDetails, error) {
 	return s.debitCardRepository.GetCardWithDetailByUserID(userID)
 }
 
 // CreateCardWithDetails creates a new debit card with all related details
-func (s *DebitCardServiceImpl) CreateCardWithDetails(card *models.DebitCard, detail *models.DebitCardDetail,
-	design *models.DebitCardDesign, status *models.DebitCardStatus) error {
-
+func (s *DebitCardServiceImpl) CreateCardWithDetails(cardWithDetails *models.DebitCardWithDetails) error {
 	// Generate a new UUID if not provided
-	if card.CardID == "" {
-		card.CardID = uuid.New().String()
+	if cardWithDetails.CardID == "" {
+		cardWithDetails.CardID = uuid.New().String()
 	}
-
-	// Set the same card ID and user ID for all related entities
-	detail.CardID = card.CardID
-	detail.UserID = card.UserID
-
-	design.CardID = card.CardID
-	design.UserID = card.UserID
-
-	status.CardID = card.CardID
-	status.UserID = card.UserID
 
 	// Use a transaction to ensure all operations succeed or fail together
 	tx, err := s.debitCardRepository.BeginTx()
@@ -90,27 +77,49 @@ func (s *DebitCardServiceImpl) CreateCardWithDetails(card *models.DebitCard, det
 	}()
 
 	// Create the main card
-	if err = s.debitCardRepository.CreateCardTx(tx, card); err != nil {
+	debitCard := &models.DebitCard{
+		CardID: cardWithDetails.CardID,
+		UserID: cardWithDetails.UserID,
+		Name:   cardWithDetails.Name,
+	}
+	if err := s.debitCardRepository.CreateCardTx(tx, debitCard); err != nil {
 		return err
 	}
 
 	// Create card details
-	if err = s.debitCardRepository.CreateCardDetailTx(tx, detail); err != nil {
+	cardDetail := &models.DebitCardDetail{
+		CardID: cardWithDetails.CardID,
+		UserID: cardWithDetails.UserID,
+		Issuer: cardWithDetails.Issuer,
+		Number: cardWithDetails.Number,
+	}
+	if err := s.debitCardRepository.CreateCardDetailTx(tx, cardDetail); err != nil {
 		return err
 	}
 
 	// Create card design
-	if err = s.debitCardRepository.CreateCardDesignTx(tx, design); err != nil {
+	cardDesign := &models.DebitCardDesign{
+		CardID:      cardWithDetails.CardID,
+		UserID:      cardWithDetails.UserID,
+		Color:       cardWithDetails.Color,
+		BorderColor: cardWithDetails.BorderColor,
+	}
+	if err := s.debitCardRepository.CreateCardDesignTx(tx, cardDesign); err != nil {
 		return err
 	}
 
-	// Create card status
-	if err = s.debitCardRepository.CreateCardStatusTx(tx, status); err != nil {
+	// Create card status -- default is active
+	cardStatus := &models.DebitCardStatus{
+		CardID: cardWithDetails.CardID,
+		UserID: cardWithDetails.UserID,
+		Status: string(models.CardStatusActive),
+	}
+	if err := s.debitCardRepository.CreateCardStatusTx(tx, cardStatus); err != nil {
 		return err
 	}
 
 	// Commit the transaction
-	if err = tx.Commit(); err != nil {
+	if err := tx.Commit(); err != nil {
 		return err
 	}
 
@@ -152,13 +161,13 @@ func (s *DebitCardServiceImpl) UpdateCard(card *models.DebitCard, name, color, b
 
 	if borderColor != "" || color != "" {
 		// Update card design
-		if err = s.debitCardRepository.UpdateCardDesignTx(tx, &cardDesign); err != nil {
+		if err := s.debitCardRepository.UpdateCardDesignTx(tx, &cardDesign); err != nil {
 			return err
 		}
 	}
 
 	// Commit the transaction
-	if err = tx.Commit(); err != nil {
+	if err := tx.Commit(); err != nil {
 		return err
 	}
 
@@ -167,5 +176,10 @@ func (s *DebitCardServiceImpl) UpdateCard(card *models.DebitCard, name, color, b
 
 // DeleteCard marks a card as deleted without removing it
 func (s *DebitCardServiceImpl) DeleteCard(cardID string) error {
-	return s.debitCardRepository.DeleteCard(cardID)
+	// update status card to inactive
+	cardStatus := models.DebitCardStatus{
+		CardID: cardID,
+		Status: string(models.CardStatusInactive),
+	}
+	return s.debitCardRepository.UpdateCardStatus(&cardStatus)
 }

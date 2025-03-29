@@ -27,9 +27,7 @@ func (c *DebitCardController) ListDebitCards(ctx *fiber.Ctx) error {
 	// Get cards from service
 	cards, err := c.debitCardService.GetCardWithDetailByUserID(userID)
 	if err != nil {
-		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": err.Error(),
-		})
+		return ErrorResponse(ctx, fiber.StatusInternalServerError, err.Error())
 	}
 
 	return ctx.Status(fiber.StatusOK).JSON(cards)
@@ -40,17 +38,13 @@ func (c *DebitCardController) GetDebitCard(ctx *fiber.Ctx) error {
 	// Get card_id from path parameters
 	cardID := ctx.Params("id")
 	if cardID == "" {
-		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": "card_id is required",
-		})
+		return ErrorResponse(ctx, fiber.StatusBadRequest, "card_id is required")
 	}
 
 	// Get card from service
 	card, err := c.debitCardService.GetCardWithDetailByID(cardID)
 	if err != nil {
-		return ctx.Status(fiber.StatusNotFound).JSON(fiber.Map{
-			"error": "Debit card not found",
-		})
+		return ErrorResponse(ctx, fiber.StatusNotFound, "Debit card not found")
 	}
 
 	return ctx.Status(fiber.StatusOK).JSON(card)
@@ -70,62 +64,38 @@ func (c *DebitCardController) CreateDebitCard(ctx *fiber.Ctx) error {
 	var request createDebitCardRequest
 
 	if err := ctx.BodyParser(&request); err != nil {
-		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": "Invalid request body",
-		})
+		return ErrorResponse(ctx, fiber.StatusBadRequest, "Invalid request body")
 	}
 
 	// Validate required fields
 	if request.Name == "" {
-		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": "name is required",
-		})
+		return ErrorResponse(ctx, fiber.StatusBadRequest, "name is required")
 	}
 
 	userID := ctx.Locals("userID").(string)
 
 	// Create the main card
-	card := &models.DebitCard{
-		UserID: userID,
-		Name:   request.Name,
-	}
-
-	// Create card details
-	detail := &models.DebitCardDetail{
-		UserID: userID,
-		Issuer: request.Issuer,
-		Number: request.Number,
-	}
-
-	// Create card design
-	design := &models.DebitCardDesign{
+	card := &models.DebitCardWithDetails{
 		UserID:      userID,
+		Name:        request.Name,
+		Issuer:      request.Issuer,
+		Number:      request.Number,
 		Color:       request.Color,
 		BorderColor: request.BorderColor,
 	}
 
-	// Create card status
-	status := &models.DebitCardStatus{
-		UserID: userID,
-		Status: request.Status,
-	}
-
 	// Create the card with all its details
-	err := c.debitCardService.CreateCardWithDetails(card, detail, design, status)
+	err := c.debitCardService.CreateCardWithDetails(card)
 	if err != nil {
 		logger.Error("Failed to create card", zap.Error(err))
-		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": err.Error(),
-		})
+		return ErrorResponse(ctx, fiber.StatusInternalServerError, err.Error())
 	}
 
 	// Retrieve the created card with all its details
 	createdCard, err := c.debitCardService.GetCardWithDetailByID(card.CardID)
 	if err != nil {
 		logger.Error("Failed to retrieve card details after create", zap.Error(err))
-		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": "Card created but failed to retrieve details",
-		})
+		return ErrorResponse(ctx, fiber.StatusInternalServerError, "Card created but failed to retrieve details")
 	}
 
 	return ctx.Status(fiber.StatusCreated).JSON(createdCard)
@@ -144,33 +114,29 @@ func (c *DebitCardController) UpdateDebitCard(ctx *fiber.Ctx) error {
 	// Get card_id from path parameters
 	cardID := ctx.Params("id")
 	if cardID == "" {
-		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": "card_id is required",
-		})
+		return ErrorResponse(ctx, fiber.StatusBadRequest, "card_id is required")
 	}
 
 	// Check if the card exists
 	existingCard, err := c.debitCardService.GetCardByID(cardID)
 	if err != nil {
-		return ctx.Status(fiber.StatusNotFound).JSON(fiber.Map{
-			"error": "Debit card not found",
-		})
+		return ErrorResponse(ctx, fiber.StatusNotFound, "Debit card not found")
 	}
 
 	if err := ctx.BodyParser(&request); err != nil {
-		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": "Invalid request body",
-		})
+		return ErrorResponse(ctx, fiber.StatusBadRequest, "Invalid request body")
 	}
 
-	c.debitCardService.UpdateCard(existingCard, request.Name, request.Color, request.BorderColor)
+	if err := c.debitCardService.UpdateCard(existingCard, request.Name, request.Color, request.BorderColor); err != nil {
+		logger.Error("Failed to update card", zap.String("card_id", cardID), zap.Error(err))
+		return ErrorResponse(ctx, fiber.StatusInternalServerError, "Failed to update card: "+err.Error())
+	}
 
 	// Retrieve the updated card with all its details
 	updatedCard, err := c.debitCardService.GetCardWithDetailByID(cardID)
 	if err != nil {
-		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": "Card updated but failed to retrieve details",
-		})
+		logger.Error("Card updated but failed to retrieve details", zap.String("card_id", cardID), zap.Error(err))
+		return ErrorResponse(ctx, fiber.StatusInternalServerError, "Card updated but failed to retrieve details")
 	}
 
 	return ctx.Status(fiber.StatusOK).JSON(updatedCard)
@@ -181,24 +147,18 @@ func (c *DebitCardController) DeleteDebitCard(ctx *fiber.Ctx) error {
 	// Get card_id from path parameters
 	cardID := ctx.Params("id")
 	if cardID == "" {
-		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": "card_id is required",
-		})
+		return ErrorResponse(ctx, fiber.StatusBadRequest, "card_id is required")
 	}
 
 	// Check if the card exists
 	_, err := c.debitCardService.GetCardByID(cardID)
 	if err != nil {
-		return ctx.Status(fiber.StatusNotFound).JSON(fiber.Map{
-			"error": "Debit card not found",
-		})
+		return ErrorResponse(ctx, fiber.StatusNotFound, "Debit card not found")
 	}
 
 	// Delete the card (soft delete)
 	if err := c.debitCardService.DeleteCard(cardID); err != nil {
-		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": "Failed to delete card: " + err.Error(),
-		})
+		return ErrorResponse(ctx, fiber.StatusInternalServerError, "Failed to delete card: "+err.Error())
 	}
 
 	return ctx.Status(fiber.StatusNoContent).Send(nil)

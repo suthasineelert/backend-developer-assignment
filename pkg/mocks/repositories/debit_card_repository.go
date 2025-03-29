@@ -274,23 +274,23 @@ func (_m *DebitCardRepository) GetCardStatusByID(cardID string) (*models.DebitCa
 }
 
 // GetCardWithDetailByID provides a mock function with given fields: cardID
-func (_m *DebitCardRepository) GetCardWithDetailByID(cardID string) (*models.DebitCardWithDetail, error) {
+func (_m *DebitCardRepository) GetCardWithDetailByID(cardID string) (*models.DebitCardWithDetails, error) {
 	ret := _m.Called(cardID)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetCardWithDetailByID")
 	}
 
-	var r0 *models.DebitCardWithDetail
+	var r0 *models.DebitCardWithDetails
 	var r1 error
-	if rf, ok := ret.Get(0).(func(string) (*models.DebitCardWithDetail, error)); ok {
+	if rf, ok := ret.Get(0).(func(string) (*models.DebitCardWithDetails, error)); ok {
 		return rf(cardID)
 	}
-	if rf, ok := ret.Get(0).(func(string) *models.DebitCardWithDetail); ok {
+	if rf, ok := ret.Get(0).(func(string) *models.DebitCardWithDetails); ok {
 		r0 = rf(cardID)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*models.DebitCardWithDetail)
+			r0 = ret.Get(0).(*models.DebitCardWithDetails)
 		}
 	}
 
@@ -304,23 +304,23 @@ func (_m *DebitCardRepository) GetCardWithDetailByID(cardID string) (*models.Deb
 }
 
 // GetCardWithDetailByUserID provides a mock function with given fields: userID
-func (_m *DebitCardRepository) GetCardWithDetailByUserID(userID string) ([]*models.DebitCardWithDetail, error) {
+func (_m *DebitCardRepository) GetCardWithDetailByUserID(userID string) ([]*models.DebitCardWithDetails, error) {
 	ret := _m.Called(userID)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetCardWithDetailByUserID")
 	}
 
-	var r0 []*models.DebitCardWithDetail
+	var r0 []*models.DebitCardWithDetails
 	var r1 error
-	if rf, ok := ret.Get(0).(func(string) ([]*models.DebitCardWithDetail, error)); ok {
+	if rf, ok := ret.Get(0).(func(string) ([]*models.DebitCardWithDetails, error)); ok {
 		return rf(userID)
 	}
-	if rf, ok := ret.Get(0).(func(string) []*models.DebitCardWithDetail); ok {
+	if rf, ok := ret.Get(0).(func(string) []*models.DebitCardWithDetails); ok {
 		r0 = rf(userID)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]*models.DebitCardWithDetail)
+			r0 = ret.Get(0).([]*models.DebitCardWithDetails)
 		}
 	}
 

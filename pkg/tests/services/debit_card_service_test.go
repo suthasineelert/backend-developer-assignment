@@ -42,19 +42,23 @@ func (s *DebitCardServiceTestSuite) TestGetCardByID() {
 			name:   "Success - Valid Card",
 			cardID: "card-123",
 			mockCard: &models.DebitCard{
-				CardID:    "card-123",
-				UserID:    "user-123",
-				Name:      "Test Card",
-				CreatedAt: now,
-				UpdatedAt: now,
+				CardID: "card-123",
+				UserID: "user-123",
+				Name:   "Test Card",
+				BaseModel: &models.BaseModel{
+					CreatedAt: now,
+					UpdatedAt: now,
+				},
 			},
 			mockError: nil,
 			expectedCard: &models.DebitCard{
-				CardID:    "card-123",
-				UserID:    "user-123",
-				Name:      "Test Card",
-				CreatedAt: now,
-				UpdatedAt: now,
+				CardID: "card-123",
+				UserID: "user-123",
+				Name:   "Test Card",
+				BaseModel: &models.BaseModel{
+					CreatedAt: now,
+					UpdatedAt: now,
+				},
 			},
 			expectedError: nil,
 		},
@@ -106,15 +110,15 @@ func (s *DebitCardServiceTestSuite) TestGetCardWithDetailByID() {
 	testCases := []struct {
 		name          string
 		cardID        string
-		mockCard      *models.DebitCardWithDetail
+		mockCard      *models.DebitCardWithDetails
 		mockError     error
-		expectedCard  *models.DebitCardWithDetail
+		expectedCard  *models.DebitCardWithDetails
 		expectedError error
 	}{
 		{
 			name:   "Success - Valid Card with Details",
 			cardID: "card-123",
-			mockCard: &models.DebitCardWithDetail{
+			mockCard: &models.DebitCardWithDetails{
 				CardID:      "card-123",
 				UserID:      "user-123",
 				Name:        "Test Card",
@@ -127,7 +131,7 @@ func (s *DebitCardServiceTestSuite) TestGetCardWithDetailByID() {
 				UpdatedAt:   now,
 			},
 			mockError: nil,
-			expectedCard: &models.DebitCardWithDetail{
+			expectedCard: &models.DebitCardWithDetails{
 				CardID:      "card-123",
 				UserID:      "user-123",
 				Name:        "Test Card",
@@ -182,14 +186,14 @@ func (s *DebitCardServiceTestSuite) TestGetCardWithDetailByUserID() {
 
 	testCases := []struct {
 		name          string
-		mockCards     []*models.DebitCardWithDetail
+		mockCards     []*models.DebitCardWithDetails
 		mockError     error
-		expectedCards []*models.DebitCardWithDetail
+		expectedCards []*models.DebitCardWithDetails
 		expectedError error
 	}{
 		{
 			name: "Success - Multiple Cards",
-			mockCards: []*models.DebitCardWithDetail{
+			mockCards: []*models.DebitCardWithDetails{
 				{
 					CardID:      "card-123",
 					UserID:      userID,
@@ -216,7 +220,7 @@ func (s *DebitCardServiceTestSuite) TestGetCardWithDetailByUserID() {
 				},
 			},
 			mockError: nil,
-			expectedCards: []*models.DebitCardWithDetail{
+			expectedCards: []*models.DebitCardWithDetails{
 				{
 					CardID:      "card-123",
 					UserID:      userID,
@@ -246,9 +250,9 @@ func (s *DebitCardServiceTestSuite) TestGetCardWithDetailByUserID() {
 		},
 		{
 			name:          "Success - No Cards",
-			mockCards:     []*models.DebitCardWithDetail{},
+			mockCards:     []*models.DebitCardWithDetails{},
 			mockError:     nil,
-			expectedCards: []*models.DebitCardWithDetail{},
+			expectedCards: []*models.DebitCardWithDetails{},
 			expectedError: nil,
 		},
 		{
@@ -291,10 +295,7 @@ func (s *DebitCardServiceTestSuite) TestCreateCardWithDetails() {
 
 	testCases := []struct {
 		name             string
-		card             *models.DebitCard
-		detail           *models.DebitCardDetail
-		design           *models.DebitCardDesign
-		status           *models.DebitCardStatus
+		cardWithDetails  *models.DebitCardWithDetails
 		mockBeginTxError error
 		mockCreateErrors []error
 		mockCommitError  error
@@ -303,26 +304,17 @@ func (s *DebitCardServiceTestSuite) TestCreateCardWithDetails() {
 	}{
 		{
 			name: "Success - With Existing ID",
-			card: &models.DebitCard{
-				CardID:    "card-123",
-				UserID:    userID,
-				Name:      "Test Card",
-				CreatedAt: now,
-				UpdatedAt: now,
-			},
-			detail: &models.DebitCardDetail{
-				UserID: userID,
-				Issuer: "Visa",
-				Number: "4111111111111111",
-			},
-			design: &models.DebitCardDesign{
+			cardWithDetails: &models.DebitCardWithDetails{
+				CardID:      "card-123",
 				UserID:      userID,
+				Name:        "Test Card",
+				CreatedAt:   now,
+				UpdatedAt:   now,
+				Issuer:      "Visa",
+				Number:      "4111111111111111",
 				Color:       "#FF0000",
 				BorderColor: "#000000",
-			},
-			status: &models.DebitCardStatus{
-				UserID: userID,
-				Status: "active",
+				Status:      "active",
 			},
 			mockBeginTxError: nil,
 			mockCreateErrors: []error{nil, nil, nil, nil},
@@ -332,26 +324,17 @@ func (s *DebitCardServiceTestSuite) TestCreateCardWithDetails() {
 		},
 		{
 			name: "Success - Generate New ID",
-			card: &models.DebitCard{
-				CardID:    "",
-				UserID:    userID,
-				Name:      "Test Card",
-				CreatedAt: now,
-				UpdatedAt: now,
-			},
-			detail: &models.DebitCardDetail{
-				UserID: userID,
-				Issuer: "Visa",
-				Number: "4111111111111111",
-			},
-			design: &models.DebitCardDesign{
+			cardWithDetails: &models.DebitCardWithDetails{
+				CardID:      "",
 				UserID:      userID,
+				Name:        "Test Card",
+				CreatedAt:   now,
+				UpdatedAt:   now,
+				Issuer:      "Visa",
+				Number:      "4111111111111111",
 				Color:       "#FF0000",
 				BorderColor: "#000000",
-			},
-			status: &models.DebitCardStatus{
-				UserID: userID,
-				Status: "active",
+				Status:      "active",
 			},
 			mockBeginTxError: nil,
 			mockCreateErrors: []error{nil, nil, nil, nil},
@@ -361,26 +344,17 @@ func (s *DebitCardServiceTestSuite) TestCreateCardWithDetails() {
 		},
 		{
 			name: "Failure - Begin Transaction Error",
-			card: &models.DebitCard{
-				CardID:    "card-123",
-				UserID:    userID,
-				Name:      "Test Card",
-				CreatedAt: now,
-				UpdatedAt: now,
-			},
-			detail: &models.DebitCardDetail{
-				UserID: userID,
-				Issuer: "Visa",
-				Number: "4111111111111111",
-			},
-			design: &models.DebitCardDesign{
+			cardWithDetails: &models.DebitCardWithDetails{
+				CardID:      "card-123",
 				UserID:      userID,
+				Name:        "Test Card",
+				CreatedAt:   now,
+				UpdatedAt:   now,
+				Issuer:      "Visa",
+				Number:      "4111111111111111",
 				Color:       "#FF0000",
 				BorderColor: "#000000",
-			},
-			status: &models.DebitCardStatus{
-				UserID: userID,
-				Status: "active",
+				Status:      "active",
 			},
 			mockBeginTxError: errors.New("failed to begin transaction"),
 			mockCreateErrors: []error{},
@@ -390,26 +364,17 @@ func (s *DebitCardServiceTestSuite) TestCreateCardWithDetails() {
 		},
 		{
 			name: "Failure - Create Card Error",
-			card: &models.DebitCard{
-				CardID:    "card-123",
-				UserID:    userID,
-				Name:      "Test Card",
-				CreatedAt: now,
-				UpdatedAt: now,
-			},
-			detail: &models.DebitCardDetail{
-				UserID: userID,
-				Issuer: "Visa",
-				Number: "4111111111111111",
-			},
-			design: &models.DebitCardDesign{
+			cardWithDetails: &models.DebitCardWithDetails{
+				CardID:      "card-123",
 				UserID:      userID,
+				Name:        "Test Card",
+				CreatedAt:   now,
+				UpdatedAt:   now,
+				Issuer:      "Visa",
+				Number:      "4111111111111111",
 				Color:       "#FF0000",
 				BorderColor: "#000000",
-			},
-			status: &models.DebitCardStatus{
-				UserID: userID,
-				Status: "active",
+				Status:      "active",
 			},
 			mockBeginTxError: nil,
 			mockCreateErrors: []error{errors.New("failed to create card"), nil, nil, nil},
@@ -419,26 +384,17 @@ func (s *DebitCardServiceTestSuite) TestCreateCardWithDetails() {
 		},
 		{
 			name: "Failure - Create Card Detail Error",
-			card: &models.DebitCard{
-				CardID:    "card-123",
-				UserID:    userID,
-				Name:      "Test Card",
-				CreatedAt: now,
-				UpdatedAt: now,
-			},
-			detail: &models.DebitCardDetail{
-				UserID: userID,
-				Issuer: "Visa",
-				Number: "4111111111111111",
-			},
-			design: &models.DebitCardDesign{
+			cardWithDetails: &models.DebitCardWithDetails{
+				CardID:      "card-123",
 				UserID:      userID,
+				Name:        "Test Card",
+				CreatedAt:   now,
+				UpdatedAt:   now,
+				Issuer:      "Visa",
+				Number:      "4111111111111111",
 				Color:       "#FF0000",
 				BorderColor: "#000000",
-			},
-			status: &models.DebitCardStatus{
-				UserID: userID,
-				Status: "active",
+				Status:      "active",
 			},
 			mockBeginTxError: nil,
 			mockCreateErrors: []error{nil, errors.New("failed to create card detail"), nil, nil},
@@ -448,26 +404,17 @@ func (s *DebitCardServiceTestSuite) TestCreateCardWithDetails() {
 		},
 		{
 			name: "Failure - Create Card Design Error",
-			card: &models.DebitCard{
-				CardID:    "card-123",
-				UserID:    userID,
-				Name:      "Test Card",
-				CreatedAt: now,
-				UpdatedAt: now,
-			},
-			detail: &models.DebitCardDetail{
-				UserID: userID,
-				Issuer: "Visa",
-				Number: "4111111111111111",
-			},
-			design: &models.DebitCardDesign{
+			cardWithDetails: &models.DebitCardWithDetails{
+				CardID:      "card-123",
 				UserID:      userID,
+				Name:        "Test Card",
+				CreatedAt:   now,
+				UpdatedAt:   now,
+				Issuer:      "Visa",
+				Number:      "4111111111111111",
 				Color:       "#FF0000",
 				BorderColor: "#000000",
-			},
-			status: &models.DebitCardStatus{
-				UserID: userID,
-				Status: "active",
+				Status:      "active",
 			},
 			mockBeginTxError: nil,
 			mockCreateErrors: []error{nil, nil, errors.New("failed to create card design"), nil},
@@ -477,26 +424,17 @@ func (s *DebitCardServiceTestSuite) TestCreateCardWithDetails() {
 		},
 		{
 			name: "Failure - Create Card Status Error",
-			card: &models.DebitCard{
-				CardID:    "card-123",
-				UserID:    userID,
-				Name:      "Test Card",
-				CreatedAt: now,
-				UpdatedAt: now,
-			},
-			detail: &models.DebitCardDetail{
-				UserID: userID,
-				Issuer: "Visa",
-				Number: "4111111111111111",
-			},
-			design: &models.DebitCardDesign{
+			cardWithDetails: &models.DebitCardWithDetails{
+				CardID:      "card-123",
 				UserID:      userID,
+				Name:        "Test Card",
+				CreatedAt:   now,
+				UpdatedAt:   now,
+				Issuer:      "Visa",
+				Number:      "4111111111111111",
 				Color:       "#FF0000",
 				BorderColor: "#000000",
-			},
-			status: &models.DebitCardStatus{
-				UserID: userID,
-				Status: "active",
+				Status:      "active",
 			},
 			mockBeginTxError: nil,
 			mockCreateErrors: []error{nil, nil, nil, errors.New("failed to create card status")},
@@ -506,26 +444,17 @@ func (s *DebitCardServiceTestSuite) TestCreateCardWithDetails() {
 		},
 		{
 			name: "Failure - Commit Error",
-			card: &models.DebitCard{
-				CardID:    "card-123",
-				UserID:    userID,
-				Name:      "Test Card",
-				CreatedAt: now,
-				UpdatedAt: now,
-			},
-			detail: &models.DebitCardDetail{
-				UserID: userID,
-				Issuer: "Visa",
-				Number: "4111111111111111",
-			},
-			design: &models.DebitCardDesign{
+			cardWithDetails: &models.DebitCardWithDetails{
+				CardID:      "card-123",
 				UserID:      userID,
+				Name:        "Test Card",
+				CreatedAt:   now,
+				UpdatedAt:   now,
+				Issuer:      "Visa",
+				Number:      "4111111111111111",
 				Color:       "#FF0000",
 				BorderColor: "#000000",
-			},
-			status: &models.DebitCardStatus{
-				UserID: userID,
-				Status: "active",
+				Status:      "active",
 			},
 			mockBeginTxError: nil,
 			mockCreateErrors: []error{nil, nil, nil, nil},
@@ -571,8 +500,11 @@ func (s *DebitCardServiceTestSuite) TestCreateCardWithDetails() {
 				}
 			}
 
+			// Save the original CardID for later comparison
+			originalCardID := tc.cardWithDetails.CardID
+
 			// Call the service method
-			err := s.service.CreateCardWithDetails(tc.card, tc.detail, tc.design, tc.status)
+			err := s.service.CreateCardWithDetails(tc.cardWithDetails)
 
 			// Assert results
 			if tc.expectedError != nil {
@@ -581,14 +513,12 @@ func (s *DebitCardServiceTestSuite) TestCreateCardWithDetails() {
 			} else {
 				assert.NoError(s.T(), err)
 				if tc.shouldGenerateID {
-					assert.NotEmpty(s.T(), tc.card.CardID)
-					_, err := uuid.Parse(tc.card.CardID)
+					assert.NotEmpty(s.T(), tc.cardWithDetails.CardID)
+					_, err := uuid.Parse(tc.cardWithDetails.CardID)
 					assert.NoError(s.T(), err, "Generated ID should be a valid UUID")
+				} else {
+					assert.Equal(s.T(), originalCardID, tc.cardWithDetails.CardID)
 				}
-				// Check that all related entities have the same card ID
-				assert.Equal(s.T(), tc.card.CardID, tc.detail.CardID)
-				assert.Equal(s.T(), tc.card.CardID, tc.design.CardID)
-				assert.Equal(s.T(), tc.card.CardID, tc.status.CardID)
 			}
 
 			// Verify expected method calls
@@ -719,7 +649,8 @@ func (s *DebitCardServiceTestSuite) TestUpdateCard() {
 		},
 	}
 
-	for _, tc := range testCases {
+	for i := range testCases {
+		tc := &testCases[i]
 		s.Run(tc.name, func() {
 			// Reset mocks
 			s.debitCardRepository = new(mocks.DebitCardRepository)
@@ -801,8 +732,10 @@ func (s *DebitCardServiceTestSuite) TestDeleteCard() {
 
 	for _, tc := range testCases {
 		s.Run(tc.name, func() {
-			// Mock the repository method
-			s.debitCardRepository.On("DeleteCard", tc.cardID).Return(tc.mockError).Once()
+			// Mock the repository method with the expected DebitCardStatus object
+			s.debitCardRepository.On("UpdateCardStatus", mock.MatchedBy(func(status *models.DebitCardStatus) bool {
+				return status.CardID == tc.cardID && status.Status == string(models.CardStatusInactive)
+			})).Return(tc.mockError).Once()
 
 			// Call the service method
 			err := s.service.DeleteCard(tc.cardID)

@@ -1,10 +1,8 @@
 package models
 
-import "backend-developer-assignment/pkg/base"
-
 // AccountDetail represents the account_details table
 type AccountDetail struct {
-	*base.BaseModel
+	*BaseModel
 	AccountID     string `db:"account_id" json:"account_id" validate:"required"`
 	UserID        string `db:"user_id" json:"user_id" validate:"required"`
 	Color         string `db:"color" json:"color"`

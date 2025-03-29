@@ -1,9 +1,5 @@
 package models
 
-import (
-	"backend-developer-assignment/pkg/base"
-)
-
 type TransactionType string
 
 const (
@@ -14,7 +10,7 @@ const (
 
 // Transaction represents the transactions table
 type Transaction struct {
-	*base.BaseModel
+	*BaseModel
 	TransactionID   string  `db:"transaction_id" json:"transaction_id" validate:"required"`
 	UserID          string  `db:"user_id" json:"user_id" validate:"required"`
 	Name            string  `db:"name" json:"name"`

@@ -3,13 +3,13 @@ package controllers
 import (
 	"backend-developer-assignment/app/models"
 	"backend-developer-assignment/app/services"
-	"backend-developer-assignment/pkg/base"
 	"backend-developer-assignment/pkg/utils"
 	"fmt"
 	"log"
 	"time"
 
 	fiber "github.com/gofiber/fiber/v2"
+	"go.uber.org/zap"
 )
 
 // AuthController holds the services related to users.
@@ -44,35 +44,28 @@ func (c *AuthController) VerifyPin(ctx *fiber.Ctx) error {
 	}
 	var request verifyPinRequest
 	if err := ctx.BodyParser(&request); err != nil {
-		return ctx.Status(fiber.StatusBadRequest).JSON(base.ErrorResponse{
-			Message: "Invalid input format: " + err.Error(),
-		})
+		return ErrorResponse(ctx, fiber.StatusBadRequest, "Invalid input format: "+err.Error())
 	}
 
 	// Fetch stored PIN hash
 	var user *models.User
 	user, err := c.UserService.GetUserByID(request.UserID)
 	if err != nil {
-		log.Printf("Failed to get user by ID: %s. %s", request.UserID, err.Error())
-		return ctx.Status(fiber.StatusNotFound).JSON(base.ErrorResponse{
-			Message: "User does not exist",
-		})
+		logger.Error("Failed to get user by ID", zap.String("user_id", request.UserID), zap.Error(err))
+		return ErrorResponse(ctx, fiber.StatusNotFound, "User does not exist")
 	}
 
 	// Verify PIN
 	if !utils.VerifyPIN(user.PIN, request.PIN) {
-		return ctx.Status(fiber.StatusUnauthorized).JSON(base.ErrorResponse{
-			Message: "Invalid PIN",
-		})
+		logger.Error("Invalid PIN", zap.String("user_id", request.UserID))
+		return ErrorResponse(ctx, fiber.StatusUnauthorized, "Invalid PIN")
 	}
 
 	// Generate JWT Token
 	token, err := utils.GenerateNewTokens(user.UserID)
-	log.Printf("user id: %s", user.UserID)
 	if err != nil {
-		return ctx.Status(fiber.StatusInternalServerError).JSON(base.ErrorResponse{
-			Message: fmt.Sprintf("Failed to generate token for user: %s. %s", user.UserID, err.Error()),
-		})
+		logger.Error("Cannot generate token", zap.String("user_id", request.UserID), zap.Error(err))
+		return ErrorResponse(ctx, fiber.StatusInternalServerError, fmt.Sprintf("Failed to generate token for user: %s. %s", user.UserID, err.Error()))
 	}
 
 	return ctx.JSON(fiber.Map{
@@ -101,9 +94,7 @@ func (c *AuthController) RenewTokens(ctx *fiber.Ctx) error {
 	claims, err := utils.ExtractTokenMetadata(ctx)
 	if err != nil {
 		// Return status 500 and JWT parse error.
-		return ctx.Status(fiber.StatusInternalServerError).JSON(base.ErrorResponse{
-			Message: err.Error(),
-		})
+		return ErrorResponse(ctx, fiber.StatusInternalServerError, err.Error())
 	}
 
 	// Set expiration time from JWT data of current user.
@@ -112,9 +103,7 @@ func (c *AuthController) RenewTokens(ctx *fiber.Ctx) error {
 	// Checking, if now time greather than Access token expiration time.
 	if now > expiresAccessToken {
 		// Return status 401 and unauthorized error message.
-		return ctx.Status(fiber.StatusUnauthorized).JSON(base.ErrorResponse{
-			Message: "unauthorized, check expiration time of your token",
-		})
+		return ErrorResponse(ctx, fiber.StatusUnauthorized, "unauthorized, check expiration time of your token")
 	}
 
 	// Create a new renew refresh token struct.
@@ -123,18 +112,14 @@ func (c *AuthController) RenewTokens(ctx *fiber.Ctx) error {
 	// Checking received data from JSON body.
 	if err := ctx.BodyParser(renew); err != nil {
 		// Return, if JSON data is not correct.
-		return ctx.Status(fiber.StatusBadRequest).JSON(base.ErrorResponse{
-			Message: err.Error(),
-		})
+		return ErrorResponse(ctx, fiber.StatusBadRequest, err.Error())
 	}
 
 	// Set expiration time from Refresh token of current user.
 	expiresRefreshToken, err := utils.ParseRefreshToken(renew.RefreshToken)
 	if err != nil {
 		// Return status 400 and error message.
-		return ctx.Status(fiber.StatusBadRequest).JSON(base.ErrorResponse{
-			Message: err.Error(),
-		})
+		return ErrorResponse(ctx, fiber.StatusBadRequest, err.Error())
 	}
 
 	// Checking, if now time greather than Refresh token expiration time.
@@ -147,30 +132,25 @@ func (c *AuthController) RenewTokens(ctx *fiber.Ctx) error {
 		if err != nil {
 			log.Printf("Failed to get user by ID: %s. %s", userID, err.Error())
 			// Return, if user not found.
-			return ctx.Status(fiber.StatusNotFound).JSON(base.ErrorResponse{
-				Message: "user not found",
-			})
+			return ErrorResponse(ctx, fiber.StatusNotFound, "user not found")
 		}
 
 		// Generate JWT Access & Refresh tokens.
 		tokens, err := utils.GenerateNewTokens(userID)
 		if err != nil {
 			// Return status 500 and token generation error.
-			return ctx.Status(fiber.StatusInternalServerError).JSON(base.ErrorResponse{
-				Message: err.Error(),
-			})
+			return ErrorResponse(ctx, fiber.StatusInternalServerError, err.Error())
 		}
 
+		// Return status 200 and new tokens.
 		return ctx.JSON(fiber.Map{
 			"tokens": fiber.Map{
 				"access":  tokens.Access,
 				"refresh": tokens.Refresh,
 			},
 		})
-	} else {
-		// Return status 401 and unauthorized error message.
-		return ctx.Status(fiber.StatusUnauthorized).JSON(base.ErrorResponse{
-			Message: "unauthorized, your session was ended earlier",
-		})
 	}
+
+	// Return status 401 and unauthorized error message.
+	return ErrorResponse(ctx, fiber.StatusUnauthorized, "unauthorized, your refresh token is expired")
 }

@@ -9,6 +9,7 @@ type Repository struct {
 	UserGreetingsRepository UserGreetingRepository
 	TransactionRepository   TransactionRepository
 	DebitCardRepository     DebitCardRepository
+	AccountRepository       AccountRepository
 }
 
 func InitRepository(db *sqlx.DB) *Repository {
@@ -17,5 +18,6 @@ func InitRepository(db *sqlx.DB) *Repository {
 		UserGreetingsRepository: NewUserGreetingsRepository(db),
 		TransactionRepository:   NewTransactionRepository(db),
 		DebitCardRepository:     NewDebitCardRepository(db),
+		AccountRepository:       NewAccountRepository(db),
 	}
 }
