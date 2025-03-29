@@ -3,7 +3,7 @@ package middleware
 import (
 	"os"
 
-	"github.com/gofiber/fiber/v2"
+	fiber "github.com/gofiber/fiber/v2"
 
 	jwtMiddleware "github.com/gofiber/contrib/jwt"
 )

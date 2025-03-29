@@ -3,7 +3,7 @@ package routes
 import (
 	"backend-developer-assignment/app/controllers"
 
-	"github.com/gofiber/fiber/v2"
+	fiber "github.com/gofiber/fiber/v2"
 )
 
 func AuthRoute(route fiber.Router, controller *controllers.Controller) {

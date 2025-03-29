@@ -4,47 +4,36 @@ import (
 	"log"
 	"os"
 	"os/signal"
+	"syscall"
 
-	"github.com/gofiber/fiber/v2"
+	fiber "github.com/gofiber/fiber/v2"
 )
 
 // StartServerWithGracefulShutdown function for starting server with a graceful shutdown.
-func StartServerWithGracefulShutdown(a *fiber.App) {
-	// Create channel for idle connections.
-	idleConnsClosed := make(chan struct{})
+func StartServerWithGracefulShutdown(app *fiber.App) {
+	// Build Fiber connection URL
+	fiberConnURL, _ := ConnectionURLBuilder("fiber")
 
+	// Listen from a different goroutine
 	go func() {
-		sigint := make(chan os.Signal, 1)
-		signal.Notify(sigint, os.Interrupt) // Catch OS signals.
-		<-sigint
-
-		// Received an interrupt signal, shutdown.
-		if err := a.Shutdown(); err != nil {
-			// Error from closing listeners, or context timeout:
-			log.Printf("Server is not shutting down! Reason: %v", err)
+		if err := app.Listen(fiberConnURL); err != nil {
+			log.Fatalf("Server is not running! Reason: %v", err)
 		}
-
-		close(idleConnsClosed)
 	}()
 
-	// Build Fiber connection URL
-	fiberConnURL, _ := ConnectionURLBuilder("fiber")
+	sigChannel := make(chan os.Signal, 1)                    // Create channel to signify a signal being sent
+	signal.Notify(sigChannel, os.Interrupt, syscall.SIGTERM) // When an interrupt or termination signal is sent, notify the channel
 
-	// Run server
-	if err := a.Listen(fiberConnURL); err != nil {
-		log.Printf("Server is not running! Reason: %v", err)
+	sig := <-sigChannel // This blocks the main thread until an interrupt is received
+	log.Printf("Received signal: %v. Shutting down gracefully...", sig)
+
+	// Shutdown Fiber server
+	if err := app.Shutdown(); err != nil {
+		// Error from closing listeners, or context timeout:
+		log.Fatalf("Server is not shutting down! Reason: %v", err)
 	}
 
-	<-idleConnsClosed
-}
+	log.Println("Running cleanup tasks...")
 
-// StartServer func for starting a simple server
-func StartServer(a *fiber.App) {
-	// Build Fiber connection URL
-	fiberConnURL, _ := ConnectionURLBuilder("fiber")
-
-	// Run server
-	if err := a.Listen(fiberConnURL); err != nil {
-		log.Printf("Server is not running! Reason: %v", err)
-	}
+	log.Println("Fiber was successful shutdown.")
 }

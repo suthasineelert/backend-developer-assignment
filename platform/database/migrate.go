@@ -2,8 +2,8 @@ package database
 
 import (
 	"github.com/gofiber/fiber/v2/log"
-	"github.com/golang-migrate/migrate/v4"
-	"github.com/golang-migrate/migrate/v4/database/mysql"
+	migrate "github.com/golang-migrate/migrate/v4"
+	mysql "github.com/golang-migrate/migrate/v4/database/mysql"
 	_ "github.com/golang-migrate/migrate/v4/source/file" // Import the file source driver
 	"github.com/jmoiron/sqlx"
 )

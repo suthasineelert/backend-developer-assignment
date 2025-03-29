@@ -3,7 +3,7 @@ package routes
 import (
 	"backend-developer-assignment/pkg/base"
 
-	"github.com/gofiber/fiber/v2"
+	fiber "github.com/gofiber/fiber/v2"
 )
 
 // NotFoundRoute func for describe 404 Error route.

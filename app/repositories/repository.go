@@ -5,12 +5,13 @@ import (
 )
 
 type Repository struct {
-	UserRepo UserRepository
-	// Add more repositories here (e.g., TransactionRepo, AccountRepo)
+	UserRepository          UserRepository
+	UserGreetingsRepository UserGreetingRepository
 }
 
 func InitRepository(db *sqlx.DB) *Repository {
 	return &Repository{
-		UserRepo: NewUserRepository(db),
+		UserRepository:          NewUserRepository(db),
+		UserGreetingsRepository: NewUserGreetingsRepository(db),
 	}
 }

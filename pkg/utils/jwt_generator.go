@@ -5,7 +5,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/golang-jwt/jwt/v5"
+	jwt "github.com/golang-jwt/jwt/v5"
 )
 
 // GenerateNewTokens func for generate a new Access & Refresh tokens.

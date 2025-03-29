@@ -15,46 +15,51 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
-	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/suite"
 )
 
-// setupTest creates a new Fiber app, mock service, and controller for testing
-func setupTest() (*fiber.App, *mocks.MockUserService, *controllers.AuthController) {
-	app := fiber.New()
-	mockService := new(mocks.MockUserService)
-	authController := controllers.NewAuthController(mockService)
-	app.Post("/verify-pin", authController.VerifyPin)
-	return app, mockService, authController
+// AuthControllerTestSuite defines the test suite for AuthController
+type AuthControllerTestSuite struct {
+	suite.Suite
+	app         *fiber.App
+	mockService *mocks.UserService
 }
 
-// testResponse tests the response from the API
-func testResponse(t *testing.T, resp *http.Response, expectedCode int, expectedBody map[string]interface{}) {
-	assert.Equal(t, expectedCode, resp.StatusCode)
+// SetupTest runs before each test case
+func (s *AuthControllerTestSuite) SetupTest() {
+	s.app = fiber.New()
+	s.mockService = new(mocks.UserService)
+
+	authController := controllers.NewAuthController(s.mockService)
+	s.app.Post("/verify-pin", authController.VerifyPin)
+
+	// Set up environment variable for JWT
+	os.Setenv("JWT_SECRET_KEY", "test-secret-key")
+}
+
+// Helper function to test response
+func (s *AuthControllerTestSuite) testResponse(resp *http.Response, expectedCode int, expectedBody map[string]interface{}) {
+	s.Equal(expectedCode, resp.StatusCode)
 
 	var respBody map[string]interface{}
 	json.NewDecoder(resp.Body).Decode(&respBody)
 
 	if expectedCode == fiber.StatusOK {
-		assert.Contains(t, respBody, "access_token")
+		s.Contains(respBody, "access_token")
 	} else {
-		assert.Equal(t, expectedBody, respBody)
+		s.Equal(expectedBody, respBody)
 	}
 }
 
-func TestVerifyPin_Success(t *testing.T) {
-	// Set up environment for JWT
-	os.Setenv("JWT_SECRET_KEY", "test-secret-key")
-
-	// Setup test
-	app, mockService, _ := setupTest()
-
+// TestVerifyPin_Success checks if PIN verification works
+func (s *AuthControllerTestSuite) TestVerifyPin_Success() {
 	// Hash a PIN for testing
 	pin := "123456"
 	hashPin, _ := utils.HashPIN(pin)
 	userID := uuid.New().String()
 
 	// Setup mock expectations
-	mockService.On("GetUserByID", userID).Return(&models.User{
+	s.mockService.On("GetUserByID", userID).Return(&models.User{
 		UserID: uuid.MustParse(userID),
 		Name:   "Test User",
 		PIN:    hashPin,
@@ -69,28 +74,26 @@ func TestVerifyPin_Success(t *testing.T) {
 	req.Header.Set("Content-Type", "application/json")
 
 	// Test the endpoint
-	resp, err := app.Test(req)
-	assert.NoError(t, err)
+	resp, err := s.app.Test(req)
+	s.NoError(err)
 
-	// Test response
+	// Expected response
 	expectedBody := map[string]interface{}{
 		"access_token": "",
 	}
-	testResponse(t, resp, fiber.StatusOK, expectedBody)
+	s.testResponse(resp, fiber.StatusOK, expectedBody)
 
-	// Verify that all expected calls were made
-	mockService.AssertExpectations(t)
+	// Verify expected method calls
+	s.mockService.AssertExpectations(s.T())
 }
 
-func TestVerifyPin_UserNotFound(t *testing.T) {
-	// Setup test
-	app, mockService, _ := setupTest()
-
+// TestVerifyPin_UserNotFound checks if a missing user returns a 404
+func (s *AuthControllerTestSuite) TestVerifyPin_UserNotFound() {
 	// Generate a user ID
 	userID := uuid.New().String()
 
 	// Setup mock expectations
-	mockService.On("GetUserByID", userID).Return(nil, errors.New("user not found"))
+	s.mockService.On("GetUserByID", userID).Return(nil, errors.New("user not found"))
 
 	// Create request
 	reqBody, _ := json.Marshal(map[string]string{
@@ -101,30 +104,28 @@ func TestVerifyPin_UserNotFound(t *testing.T) {
 	req.Header.Set("Content-Type", "application/json")
 
 	// Test the endpoint
-	resp, err := app.Test(req)
-	assert.NoError(t, err)
+	resp, err := s.app.Test(req)
+	s.NoError(err)
 
-	// Test response
+	// Expected response
 	expectedBody := map[string]interface{}{
 		"message": "User does not exist",
 	}
-	testResponse(t, resp, fiber.StatusNotFound, expectedBody)
+	s.testResponse(resp, fiber.StatusNotFound, expectedBody)
 
-	// Verify that all expected calls were made
-	mockService.AssertExpectations(t)
+	// Verify expected method calls
+	s.mockService.AssertExpectations(s.T())
 }
 
-func TestVerifyPin_InvalidPIN(t *testing.T) {
-	// Setup test
-	app, mockService, _ := setupTest()
-
+// TestVerifyPin_InvalidPIN checks if incorrect PIN returns an unauthorized error
+func (s *AuthControllerTestSuite) TestVerifyPin_InvalidPIN() {
 	// Hash a PIN for testing
 	pin := "123456"
 	hashPin, _ := utils.HashPIN(pin)
 	userID := uuid.New().String()
 
 	// Setup mock expectations
-	mockService.On("GetUserByID", userID).Return(&models.User{
+	s.mockService.On("GetUserByID", userID).Return(&models.User{
 		UserID: uuid.MustParse(userID),
 		Name:   "Test User",
 		PIN:    hashPin,
@@ -139,15 +140,20 @@ func TestVerifyPin_InvalidPIN(t *testing.T) {
 	req.Header.Set("Content-Type", "application/json")
 
 	// Test the endpoint
-	resp, err := app.Test(req)
-	assert.NoError(t, err)
+	resp, err := s.app.Test(req)
+	s.NoError(err)
 
-	// Test response
+	// Expected response
 	expectedBody := map[string]interface{}{
 		"message": "Invalid PIN",
 	}
-	testResponse(t, resp, fiber.StatusUnauthorized, expectedBody)
+	s.testResponse(resp, fiber.StatusUnauthorized, expectedBody)
 
-	// Verify that all expected calls were made
-	mockService.AssertExpectations(t)
+	// Verify expected method calls
+	s.mockService.AssertExpectations(s.T())
+}
+
+// Run the test suite
+func TestAuthControllerTestSuite(t *testing.T) {
+	suite.Run(t, new(AuthControllerTestSuite))
 }

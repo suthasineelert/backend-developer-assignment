@@ -9,6 +9,6 @@ type Service struct {
 
 func InitService(repo *repositories.Repository) *Service {
 	return &Service{
-		UserService: NewUserService(repo.UserRepo),
+		UserService: NewUserService(repo.UserRepository, repo.UserGreetingsRepository),
 	}
 }

@@ -7,7 +7,7 @@ import (
 	"backend-developer-assignment/pkg/utils"
 	"fmt"
 
-	"github.com/gofiber/fiber/v2"
+	fiber "github.com/gofiber/fiber/v2"
 )
 
 // AuthController holds the services related to users.
