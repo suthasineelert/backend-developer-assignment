@@ -7,7 +7,6 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 )
@@ -117,12 +116,12 @@ func (s *UserServiceTestSuite) TestGetUserGreetingByID() {
 			name:   "Success - Valid User Greeting",
 			userID: "000018b0e1a211ef95a30242ac180002",
 			mockUserGreeting: &models.UserGreeting{
-				UserID:   uuid.MustParse("000018b0e1a211ef95a30242ac180002"),
+				UserID:   "000018b0e1a211ef95a30242ac180002",
 				Greeting: "Hello, welcome back!",
 			},
 			mockError: nil,
 			expectedGreeting: &models.UserGreeting{
-				UserID:   uuid.MustParse("000018b0e1a211ef95a30242ac180002"),
+				UserID:   "000018b0e1a211ef95a30242ac180002",
 				Greeting: "Hello, welcome back!",
 			},
 			expectedError: nil,
