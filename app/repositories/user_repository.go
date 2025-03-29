@@ -44,7 +44,7 @@ func (r *UserRepositoryImpl) GetByID(id string) (*models.User, error) {
 func (r *UserRepositoryImpl) GetByName(name string) (*models.User, error) {
 	user := &models.User{}
 
-	query := `SELECT * FROM users WHERE name = ?`
+	query := `SELECT user_id, name FROM users WHERE name = ?`
 
 	err := r.DB.Get(user, query, name)
 	if err != nil {
@@ -56,12 +56,20 @@ func (r *UserRepositoryImpl) GetByName(name string) (*models.User, error) {
 
 // Update performs an update on user information.
 func (r *UserRepositoryImpl) Update(u *models.User) error {
-	query := `UPDATE users SET name = ?, pin = ? WHERE user_id = ?`
+	var query string
+	var err error
 
-	_, err := r.DB.Exec(
-		query,
-		u.Name, u.PIN, u.UserID,
-	)
+	// Check if PIN is provided
+	if u.PIN != "" {
+		// Update both name and PIN
+		query = `UPDATE users SET name = ?, pin = ? WHERE user_id = ?`
+		_, err = r.DB.Exec(query, u.Name, u.PIN, u.UserID)
+	} else {
+		// Update only name
+		query = `UPDATE users SET name = ? WHERE user_id = ?`
+		_, err = r.DB.Exec(query, u.Name, u.UserID)
+	}
+
 	if err != nil {
 		return err
 	}

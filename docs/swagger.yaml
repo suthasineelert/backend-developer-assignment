@@ -1,4 +1,27 @@
-basePath: /api
+basePath: /api/v1
+definitions:
+  base.ErrorResponse:
+    properties:
+      message:
+        type: string
+    type: object
+  controllers.GetUserGreeting.getUserGreetingResponse:
+    properties:
+      message:
+        type: string
+    type: object
+  controllers.VerifyPin.verifyPinRequest:
+    properties:
+      pin:
+        type: string
+      user_id:
+        type: string
+    type: object
+  models.Renew:
+    properties:
+      refresh_token:
+        type: string
+    type: object
 host: localhost:8080
 info:
   contact:
@@ -12,7 +35,7 @@ info:
   title: Backend Developer Assignment API
   version: "1.0"
 paths:
-  /api/auth/verify-pin:
+  /auth/verify-pin:
     post:
       consumes:
       - application/json
@@ -23,61 +46,90 @@ paths:
         name: request
         required: true
         schema:
-          properties:
-            pin:
-              type: string
-            user_id:
-              type: string
-          type: object
+          $ref: '#/definitions/controllers.VerifyPin.verifyPinRequest'
       produces:
       - application/json
       responses:
         "200":
-          description: JWT token
+          description: JWT tokens
           schema:
             properties:
-              token:
-                type: string
+              tokens:
+                properties:
+                  access:
+                    type: string
+                  refresh:
+                    type: string
+                type: object
             type: object
         "400":
           description: Invalid input format
           schema:
-            properties:
-              error:
-                type: boolean
-              msg:
-                type: string
-            type: object
+            $ref: '#/definitions/base.ErrorResponse'
         "401":
           description: Invalid PIN
           schema:
-            properties:
-              error:
-                type: boolean
-              msg:
-                type: string
-            type: object
+            $ref: '#/definitions/base.ErrorResponse'
         "404":
           description: User does not exist
           schema:
-            properties:
-              error:
-                type: boolean
-              msg:
-                type: string
-            type: object
+            $ref: '#/definitions/base.ErrorResponse'
         "500":
-          description: Failed to generate token for user
+          description: Failed to generate token
           schema:
-            properties:
-              error:
-                type: boolean
-              msg:
-                type: string
-            type: object
+            $ref: '#/definitions/base.ErrorResponse'
       summary: Verify PIN and get JWT token
       tags:
       - Authentication
+  /token/renew:
+    post:
+      consumes:
+      - application/json
+      description: Renew access and refresh tokens.
+      parameters:
+      - description: Refresh token
+        in: body
+        name: refresh_token
+        required: true
+        schema:
+          $ref: '#/definitions/models.Renew'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: renew access and refresh tokens
+      tags:
+      - Token
+  /user/greeting:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves the greeting message for the authenticated user
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Returns the greeting message
+          schema:
+            $ref: '#/definitions/controllers.GetUserGreeting.getUserGreetingResponse'
+        "401":
+          description: Unauthorized - Invalid or missing token
+          schema:
+            $ref: '#/definitions/base.ErrorResponse'
+        "404":
+          description: User greeting not found
+          schema:
+            $ref: '#/definitions/base.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Get user's greeting message
+      tags:
+      - User
 securityDefinitions:
   ApiKeyAuth:
     in: header

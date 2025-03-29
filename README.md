@@ -17,6 +17,7 @@
    - [github.com/securego/gosec](https://github.com/securego/gosec) for checking Go security issues
    - [github.com/go-critic/go-critic](https://github.com/go-critic/go-critic) for checking Go the best practice issues
    - [github.com/golangci/golangci-lint](https://github.com/golangci/golangci-lint) for checking Go linter issues
+   - [github.com/air-verse/air](https://github.com/air-verse/air) for live reload
 
 4. Run project by this command:
 

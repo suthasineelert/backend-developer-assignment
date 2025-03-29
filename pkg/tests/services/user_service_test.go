@@ -41,12 +41,12 @@ func (s *UserServiceTestSuite) TestGetUserByID() {
 			name:   "Success - Valid User",
 			userID: "000018b0e1a211ef95a30242ac180002",
 			mockUser: &models.User{
-				UserID: uuid.MustParse("000018b0e1a211ef95a30242ac180002"),
+				UserID: "000018b0e1a211ef95a30242ac180002",
 				Name:   "Test User",
 				PIN:    "hashedpin123",
 			},
 			mockError:     nil,
-			expectedUser:  &models.User{UserID: uuid.MustParse("000018b0e1a211ef95a30242ac180002"), Name: "Test User", PIN: "hashedpin123"},
+			expectedUser:  &models.User{UserID: "000018b0e1a211ef95a30242ac180002", Name: "Test User", PIN: "hashedpin123"},
 			expectedError: nil,
 		},
 		{

@@ -23,7 +23,7 @@ test: clean critic security lint
 
 # build: test
 build:	
-	go build -o $(BUILD_DIR)/$(APP_NAME) main.go
+	go build -o $(BUILD_DIR)/$(APP_NAME) cmd/main.go
 
 run: swag build
 	$(BUILD_DIR)/$(APP_NAME)
@@ -44,7 +44,7 @@ docker-compose.down:
 	docker-compose down
 
 swag:
-	swag init
+	swag init -g cmd/main.go
 
 seed.pins:
 	go run cmd/seed/seed.go

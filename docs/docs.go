@@ -23,7 +23,7 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/api/auth/verify-pin": {
+        "/auth/verify-pin": {
             "post": {
                 "description": "Verify user PIN and return JWT token",
                 "consumes": [
@@ -43,26 +43,26 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "object",
-                            "properties": {
-                                "pin": {
-                                    "type": "string"
-                                },
-                                "user_id": {
-                                    "type": "string"
-                                }
-                            }
+                            "$ref": "#/definitions/controllers.VerifyPin.verifyPinRequest"
                         }
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "JWT token",
+                        "description": "JWT tokens",
                         "schema": {
                             "type": "object",
                             "properties": {
-                                "token": {
-                                    "type": "string"
+                                "tokens": {
+                                    "type": "object",
+                                    "properties": {
+                                        "access": {
+                                            "type": "string"
+                                        },
+                                        "refresh": {
+                                            "type": "string"
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -70,59 +70,143 @@ const docTemplate = `{
                     "400": {
                         "description": "Invalid input format",
                         "schema": {
-                            "type": "object",
-                            "properties": {
-                                "error": {
-                                    "type": "boolean"
-                                },
-                                "msg": {
-                                    "type": "string"
-                                }
-                            }
+                            "$ref": "#/definitions/base.ErrorResponse"
                         }
                     },
                     "401": {
                         "description": "Invalid PIN",
                         "schema": {
-                            "type": "object",
-                            "properties": {
-                                "error": {
-                                    "type": "boolean"
-                                },
-                                "msg": {
-                                    "type": "string"
-                                }
-                            }
+                            "$ref": "#/definitions/base.ErrorResponse"
                         }
                     },
                     "404": {
                         "description": "User does not exist",
                         "schema": {
-                            "type": "object",
-                            "properties": {
-                                "error": {
-                                    "type": "boolean"
-                                },
-                                "msg": {
-                                    "type": "string"
-                                }
-                            }
+                            "$ref": "#/definitions/base.ErrorResponse"
                         }
                     },
                     "500": {
-                        "description": "Failed to generate token for user",
+                        "description": "Failed to generate token",
                         "schema": {
-                            "type": "object",
-                            "properties": {
-                                "error": {
-                                    "type": "boolean"
-                                },
-                                "msg": {
-                                    "type": "string"
-                                }
-                            }
+                            "$ref": "#/definitions/base.ErrorResponse"
                         }
                     }
+                }
+            }
+        },
+        "/token/renew": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Renew access and refresh tokens.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Token"
+                ],
+                "summary": "renew access and refresh tokens",
+                "parameters": [
+                    {
+                        "description": "Refresh token",
+                        "name": "refresh_token",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.Renew"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "ok",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/user/greeting": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Retrieves the greeting message for the authenticated user",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "User"
+                ],
+                "summary": "Get user's greeting message",
+                "responses": {
+                    "200": {
+                        "description": "Returns the greeting message",
+                        "schema": {
+                            "$ref": "#/definitions/controllers.GetUserGreeting.getUserGreetingResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized - Invalid or missing token",
+                        "schema": {
+                            "$ref": "#/definitions/base.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "User greeting not found",
+                        "schema": {
+                            "$ref": "#/definitions/base.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "base.ErrorResponse": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string"
+                }
+            }
+        },
+        "controllers.GetUserGreeting.getUserGreetingResponse": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string"
+                }
+            }
+        },
+        "controllers.VerifyPin.verifyPinRequest": {
+            "type": "object",
+            "properties": {
+                "pin": {
+                    "type": "string"
+                },
+                "user_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.Renew": {
+            "type": "object",
+            "properties": {
+                "refresh_token": {
+                    "type": "string"
                 }
             }
         }
@@ -140,7 +224,7 @@ const docTemplate = `{
 var SwaggerInfo = &swag.Spec{
 	Version:          "1.0",
 	Host:             "localhost:8080",
-	BasePath:         "/api",
+	BasePath:         "/api/v1",
 	Schemes:          []string{},
 	Title:            "Backend Developer Assignment API",
 	Description:      "This is an auto-generated API Docs.",

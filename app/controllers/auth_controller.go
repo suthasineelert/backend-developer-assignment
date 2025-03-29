@@ -6,6 +6,7 @@ import (
 	"backend-developer-assignment/pkg/base"
 	"backend-developer-assignment/pkg/utils"
 	"fmt"
+	"log"
 	"time"
 
 	fiber "github.com/gofiber/fiber/v2"
@@ -23,19 +24,19 @@ func NewAuthController(userService services.UserService) *AuthController {
 	}
 }
 
-// VerifyPin verifies a PIN against a stored hash and get a JWT token
+// VerifyPin method for user PIN verification.
 // @Description Verify user PIN and return JWT token
 // @Summary Verify PIN and get JWT token
 // @Tags Authentication
 // @Accept json
 // @Produce json
-// @Param request body controllers.verifyPinRequest true "PIN verification request"
+// @Param request body controllers.VerifyPin.verifyPinRequest true "PIN verification request"
 // @Success 200 {object} object{tokens=object{access=string,refresh=string}} "JWT tokens"
 // @Failure 400 {object} base.ErrorResponse "Invalid input format"
 // @Failure 401 {object} base.ErrorResponse "Invalid PIN"
 // @Failure 404 {object} base.ErrorResponse "User does not exist"
 // @Failure 500 {object} base.ErrorResponse "Failed to generate token"
-// @Router /api/auth/verify-pin [post]
+// @Router /auth/verify-pin [post]
 func (c *AuthController) VerifyPin(ctx *fiber.Ctx) error {
 	type verifyPinRequest struct {
 		UserID string `json:"user_id"`
@@ -52,6 +53,7 @@ func (c *AuthController) VerifyPin(ctx *fiber.Ctx) error {
 	var user *models.User
 	user, err := c.UserService.GetUserByID(request.UserID)
 	if err != nil {
+		log.Printf("Failed to get user by ID: %s. %s", request.UserID, err.Error())
 		return ctx.Status(fiber.StatusNotFound).JSON(base.ErrorResponse{
 			Message: "User does not exist",
 		})
@@ -65,10 +67,11 @@ func (c *AuthController) VerifyPin(ctx *fiber.Ctx) error {
 	}
 
 	// Generate JWT Token
-	token, err := utils.GenerateNewTokens(user.UserID.String())
+	token, err := utils.GenerateNewTokens(user.UserID)
+	log.Printf("user id: %s", user.UserID)
 	if err != nil {
 		return ctx.Status(fiber.StatusInternalServerError).JSON(base.ErrorResponse{
-			Message: fmt.Sprintf("Failed to generate token for user: %s. %s", user.UserID.String(), err.Error()),
+			Message: fmt.Sprintf("Failed to generate token for user: %s. %s", user.UserID, err.Error()),
 		})
 	}
 
@@ -86,10 +89,10 @@ func (c *AuthController) VerifyPin(ctx *fiber.Ctx) error {
 // @Tags Token
 // @Accept json
 // @Produce json
-// @Param refresh_token body string true "Refresh token"
+// @Param refresh_token body models.Renew true "Refresh token"
 // @Success 200 {string} status "ok"
 // @Security ApiKeyAuth
-// @Router /v1/token/renew [post]
+// @Router /token/renew [post]
 func (c *AuthController) RenewTokens(ctx *fiber.Ctx) error {
 	// Get now time.
 	now := time.Now().Unix()
@@ -140,8 +143,9 @@ func (c *AuthController) RenewTokens(ctx *fiber.Ctx) error {
 		userID := claims.UserID
 
 		// Get user by ID.
-		_, err = c.UserService.GetUserByID(userID.String())
+		_, err = c.UserService.GetUserByID(userID)
 		if err != nil {
+			log.Printf("Failed to get user by ID: %s. %s", userID, err.Error())
 			// Return, if user not found.
 			return ctx.Status(fiber.StatusNotFound).JSON(base.ErrorResponse{
 				Message: "user not found",
@@ -149,7 +153,7 @@ func (c *AuthController) RenewTokens(ctx *fiber.Ctx) error {
 		}
 
 		// Generate JWT Access & Refresh tokens.
-		tokens, err := utils.GenerateNewTokens(userID.String())
+		tokens, err := utils.GenerateNewTokens(userID)
 		if err != nil {
 			// Return status 500 and token generation error.
 			return ctx.Status(fiber.StatusInternalServerError).JSON(base.ErrorResponse{

@@ -8,5 +8,10 @@ import (
 )
 
 func UserRoute(route fiber.Router, controller *controllers.Controller) {
-	route.Post("/greeting", middleware.JWTProtected(), controller.AuthController.VerifyPin)
+	// Group user routes with JWT protection
+	userRoutes := route.Group("/user", middleware.AuthProtected()...)
+	userRoutes.Get("/greeting", controller.UserController.GetUserGreeting)
+	userRoutes.Put("/greeting", controller.UserController.UpdateUserGreeting)
+	userRoutes.Get("/profile", controller.UserController.GetUser)
+	userRoutes.Patch("/profile", controller.UserController.UpdateUser)
 }

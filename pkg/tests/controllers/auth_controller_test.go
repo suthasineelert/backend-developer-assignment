@@ -82,7 +82,7 @@ func (s *AuthControllerTestSuite) TestVerifyPin_Success() {
 
 	// Setup mock expectations
 	s.mockService.On("GetUserByID", userID).Return(&models.User{
-		UserID: uuid.MustParse(userID),
+		UserID: userID,
 		Name:   "Test User",
 		PIN:    hashPin,
 	}, nil)
@@ -151,7 +151,7 @@ func (s *AuthControllerTestSuite) TestVerifyPin_InvalidPIN() {
 
 	// Setup mock expectations
 	s.mockService.On("GetUserByID", userID).Return(&models.User{
-		UserID: uuid.MustParse(userID),
+		UserID: userID,
 		Name:   "Test User",
 		PIN:    hashPin,
 	}, nil)
@@ -182,7 +182,7 @@ func (s *AuthControllerTestSuite) TestVerifyPin_InvalidPIN() {
 func (s *AuthControllerTestSuite) TestRenewTokens_Success() {
 	// Setup mock expectations
 	s.mockService.On("GetUserByID", s.userID).Return(&models.User{
-		UserID: uuid.MustParse(s.userID),
+		UserID: s.userID,
 		Name:   "Test User",
 	}, nil)
 

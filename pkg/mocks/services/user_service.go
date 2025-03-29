@@ -73,6 +73,42 @@ func (_m *UserService) GetUserGreetingByID(id string) (*models.UserGreeting, err
 	return r0, r1
 }
 
+// UpdateUser provides a mock function with given fields: user
+func (_m *UserService) UpdateUser(user *models.User) error {
+	ret := _m.Called(user)
+
+	if len(ret) == 0 {
+		panic("no return value specified for UpdateUser")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(*models.User) error); ok {
+		r0 = rf(user)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// UpdateUserGreeting provides a mock function with given fields: greeting
+func (_m *UserService) UpdateUserGreeting(greeting *models.UserGreeting) error {
+	ret := _m.Called(greeting)
+
+	if len(ret) == 0 {
+		panic("no return value specified for UpdateUserGreeting")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(*models.UserGreeting) error); ok {
+		r0 = rf(greeting)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // NewUserService creates a new instance of UserService. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
 // The first argument is typically a *testing.T value.
 func NewUserService(t interface {
