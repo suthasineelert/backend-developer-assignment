@@ -28,7 +28,7 @@ func NewUserGreetingsRepository(db *sqlx.DB) UserGreetingRepository {
 func (r *UserGreetingRepositoryImpl) GetByID(id string) (*models.UserGreeting, error) {
 	user := &models.UserGreeting{}
 
-	query := `SELECT * FROM user_greetings WHERE user_id = ?`
+	query := `SELECT * FROM user_greetings WHERE user_id = ? and deleted_at IS NULL`
 
 	err := r.DB.Get(user, query, id)
 	if err != nil {
@@ -40,7 +40,7 @@ func (r *UserGreetingRepositoryImpl) GetByID(id string) (*models.UserGreeting, e
 
 // Update performs an update on user greeting information.
 func (r *UserGreetingRepositoryImpl) Update(u *models.UserGreeting) error {
-	query := `UPDATE user_greetings SET greeting = ? WHERE user_id = ?`
+	query := `UPDATE user_greetings SET greeting = ? WHERE user_id = ? and deleted_at IS NULL`
 
 	_, err := r.DB.Exec(
 		query,

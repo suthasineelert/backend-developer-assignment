@@ -29,7 +29,7 @@ func NewUserRepository(db *sqlx.DB) UserRepository {
 func (r *UserRepositoryImpl) GetByID(id string) (*models.User, error) {
 	user := &models.User{}
 
-	query := `SELECT * FROM users WHERE user_id = ?`
+	query := `SELECT * FROM users WHERE user_id = ? and deleted_at IS NULL`
 
 	// Send query to database.
 	err := r.DB.Get(user, query, id)
@@ -44,7 +44,7 @@ func (r *UserRepositoryImpl) GetByID(id string) (*models.User, error) {
 func (r *UserRepositoryImpl) GetByName(name string) (*models.User, error) {
 	user := &models.User{}
 
-	query := `SELECT user_id, name FROM users WHERE name = ?`
+	query := `SELECT user_id, name FROM users WHERE name = ? and deleted_at IS NULL`
 
 	err := r.DB.Get(user, query, name)
 	if err != nil {

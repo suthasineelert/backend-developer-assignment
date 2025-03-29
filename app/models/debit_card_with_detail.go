@@ -1,16 +1,14 @@
 package models
 
-import "time"
+import "backend-developer-assignment/pkg/base"
 
 // DebitCardWithDetail represents a joined view of all debit card related tables
 type DebitCardWithDetail struct {
+	*base.BaseModel
 	// DebitCard fields
-	CardID    string     `db:"card_id" json:"card_id"`
-	UserID    string     `db:"user_id" json:"user_id"`
-	Name      string     `db:"name" json:"name"`
-	CreatedAt time.Time  `db:"created_at" json:"created_at"`
-	UpdatedAt time.Time  `db:"updated_at" json:"updated_at"`
-	DeletedAt *time.Time `db:"deleted_at" json:"deleted_at"`
+	CardID string `db:"card_id" json:"card_id"`
+	UserID string `db:"user_id" json:"user_id"`
+	Name   string `db:"name" json:"name"`
 
 	// DebitCardDetail fields
 	Issuer string `db:"issuer" json:"issuer"`

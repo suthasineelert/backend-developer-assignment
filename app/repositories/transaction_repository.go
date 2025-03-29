@@ -31,7 +31,7 @@ func NewTransactionRepository(db *sqlx.DB) TransactionRepository {
 func (r *TransactionRepositoryImpl) GetByID(id string) (*models.Transaction, error) {
 	transaction := &models.Transaction{}
 
-	query := `SELECT * FROM transactions WHERE transaction_id = ?`
+	query := `SELECT * FROM transactions WHERE transaction_id = ? and deleted_at IS NULL`
 
 	err := r.DB.Get(transaction, query, id)
 	if err != nil {
@@ -45,7 +45,7 @@ func (r *TransactionRepositoryImpl) GetByID(id string) (*models.Transaction, err
 func (r *TransactionRepositoryImpl) GetByUserID(userID string) ([]*models.Transaction, error) {
 	transactions := []*models.Transaction{}
 
-	query := `SELECT * FROM transactions WHERE user_id = ? ORDER BY created_at DESC`
+	query := `SELECT * FROM transactions WHERE user_id = ? and deleted_at IS NULL ORDER BY created_at DESC`
 
 	err := r.DB.Select(&transactions, query, userID)
 	if err != nil {
@@ -60,7 +60,7 @@ func (r *TransactionRepositoryImpl) GetByUserIDWithPagination(userID, orderBy st
 	transactions := []*models.Transaction{}
 
 	// Query for paginated results
-	query := `SELECT * FROM transactions WHERE user_id = ? ORDER BY ? DESC LIMIT ? OFFSET ?`
+	query := `SELECT * FROM transactions WHERE user_id = ? and deleted_at IS NULL ORDER BY ? DESC LIMIT ? OFFSET ?`
 
 	err := r.DB.Select(&transactions, query, userID, orderBy, limit, offset)
 	if err != nil {
@@ -69,7 +69,7 @@ func (r *TransactionRepositoryImpl) GetByUserIDWithPagination(userID, orderBy st
 
 	// Get total count for pagination metadata
 	var total int
-	countQuery := `SELECT COUNT(*) FROM transactions WHERE user_id = ?`
+	countQuery := `SELECT COUNT(*) FROM transactions WHERE user_id = ? and deleted_at IS NULL`
 	err = r.DB.Get(&total, countQuery, userID)
 	if err != nil {
 		return nil, 0, err
