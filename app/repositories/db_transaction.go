@@ -1,27 +1,26 @@
 package repositories
 
-import "github.com/jmoiron/sqlx"
+import (
+	"errors"
 
-// DBTransaction defines the interface for database transactions
-type DBTransaction interface {
-	Commit() error
-	Rollback() error
-	Exec(query string, args ...interface{}) (interface{}, error)
-}
+	"github.com/jmoiron/sqlx"
+)
 
-// sqlxTransaction is a wrapper around sqlx.Tx that implements DBTransaction
-type sqlxTransaction struct {
-	tx *sqlx.Tx
-}
+func runInTx(db *sqlx.DB, fn func(tx *sqlx.Tx) error) error {
+	tx, err := db.Beginx()
+	if err != nil {
+		return err
+	}
 
-func (t *sqlxTransaction) Commit() error {
-	return t.tx.Commit()
-}
+	err = fn(tx)
+	if err == nil {
+		return tx.Commit()
+	}
 
-func (t *sqlxTransaction) Rollback() error {
-	return t.tx.Rollback()
-}
+	rollbackErr := tx.Rollback()
+	if rollbackErr != nil {
+		return errors.Join(err, rollbackErr)
+	}
 
-func (t *sqlxTransaction) Exec(query string, args ...interface{}) (interface{}, error) {
-	return t.tx.Exec(query, args...)
+	return err
 }

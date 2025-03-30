@@ -4,9 +4,6 @@
 
 [Fiber](https://gofiber.io/) is an Express.js inspired web framework build on top of Fasthttp, the fastest HTTP engine for Go. Designed to ease things up for **fast** development with **zero memory allocation** and **performance** in mind.
 
-## TODO
-- Grouping route to different files
-
 ## ⚡️ Quick start
 1. Clone the repo
 2. Rename `.env.example` to `.env` and fill it with your environment values.
@@ -46,6 +43,10 @@ make docker-compose.up
 - [x] Delete Debit Card
 - [] Get Banner
 
+## Key Notes
+- Database transaction will be handled in repository layer, but the logic will be pass through function
+
+
 ## TODO
 - [] Unit test for all apis
 - [] Optimized services latency (optional)
@@ -54,8 +55,10 @@ make docker-compose.up
 
 ## Updated Schema
 - Add column `pin` to `users` table
-- Add column `created_at`, `updated_at`, `amount`, `transaction_type` to `transactions` table to log transaction history, type is `debit`, `withdrawal`, or `transfer`
-- Add column `created_at`, `updated_at`, `deleted_at` to `debit_cards` table to handle soft delete
+- Add column `created_at`, `updated_at`, `deleted_at` to all table
+- Add column `amount`, `transaction_type` to `transactions` table to log transaction history, type is `debit`, `withdrawal`, or `transfer`
+
+
 
 ## Database Migration
 
@@ -80,7 +83,9 @@ make migrate.down
 migrate create -ext sql -dir platform/migrations -seq create_users_table
 ```
 
+
 ## Seeding Data
+
 ### Seeding Mock Data
 ```bash
 mysql -h 127.0.0.1 -p assignment < /path/to/mock/*.sql
@@ -91,6 +96,7 @@ and enter mysql root password
 ```
 make seed.pins
 ```
+
 
 ## Testing
 ### Run all tests
@@ -111,7 +117,9 @@ Create mocks
 ```
 
 ## Assumptions
-1. User already registered and has pin
+- User already registered and has pin
+
+
 
 ## 🗄 Project Structure
 

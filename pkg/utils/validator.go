@@ -1,6 +1,9 @@
 package utils
 
 import (
+	"fmt"
+	"strings"
+
 	validator "github.com/go-playground/validator/v10"
 	"github.com/google/uuid"
 )
@@ -23,14 +26,13 @@ func NewValidator() *validator.Validate {
 }
 
 // ValidatorErrors func for show validation errors for each invalid fields.
-func ValidatorErrors(err error) map[string]string {
-	// Define fields map.
-	fields := map[string]string{}
+func ValidatorErrors(err error) string {
+	errMsgs := make([]string, 0)
 
 	// Make error message for each invalid field.
 	for _, err := range err.(validator.ValidationErrors) {
-		fields[err.Field()] = err.Error()
+		errMsgs = append(errMsgs, fmt.Sprintf("%s %s", err.Field(), err.Error()))
 	}
 
-	return fields
+	return strings.Join(errMsgs, " and ")
 }

@@ -16,7 +16,7 @@ type DebitCardService interface {
 	GetCardWithDetailByUserID(userID string) ([]*models.DebitCardWithDetails, error)
 
 	// Create operations
-	CreateCardWithDetails(card *models.DebitCardWithDetails) error
+	CreateCardWithDetails(cardWithDetails *models.DebitCardWithDetails) error
 
 	// Update operations
 	UpdateCard(card *models.DebitCard, name, color, borderColor string) error
@@ -64,62 +64,10 @@ func (s *DebitCardServiceImpl) CreateCardWithDetails(cardWithDetails *models.Deb
 		cardWithDetails.CardID = uuid.New().String()
 	}
 
-	// Use a transaction to ensure all operations succeed or fail together
-	tx, err := s.debitCardRepository.BeginTx()
-	if err != nil {
-		return err
-	}
-	// Defer a rollback in case anything fails
-	defer func() {
-		if err != nil {
-			tx.Rollback()
-		}
-	}()
+	// Create card default status to in-progress
+	cardWithDetails.Status = string(models.CardStatusInprogress)
 
-	// Create the main card
-	debitCard := &models.DebitCard{
-		CardID: cardWithDetails.CardID,
-		UserID: cardWithDetails.UserID,
-		Name:   cardWithDetails.Name,
-	}
-	if err := s.debitCardRepository.CreateCardTx(tx, debitCard); err != nil {
-		return err
-	}
-
-	// Create card details
-	cardDetail := &models.DebitCardDetail{
-		CardID: cardWithDetails.CardID,
-		UserID: cardWithDetails.UserID,
-		Issuer: cardWithDetails.Issuer,
-		Number: cardWithDetails.Number,
-	}
-	if err := s.debitCardRepository.CreateCardDetailTx(tx, cardDetail); err != nil {
-		return err
-	}
-
-	// Create card design
-	cardDesign := &models.DebitCardDesign{
-		CardID:      cardWithDetails.CardID,
-		UserID:      cardWithDetails.UserID,
-		Color:       cardWithDetails.Color,
-		BorderColor: cardWithDetails.BorderColor,
-	}
-	if err := s.debitCardRepository.CreateCardDesignTx(tx, cardDesign); err != nil {
-		return err
-	}
-
-	// Create card status -- default is active
-	cardStatus := &models.DebitCardStatus{
-		CardID: cardWithDetails.CardID,
-		UserID: cardWithDetails.UserID,
-		Status: string(models.CardStatusActive),
-	}
-	if err := s.debitCardRepository.CreateCardStatusTx(tx, cardStatus); err != nil {
-		return err
-	}
-
-	// Commit the transaction
-	if err := tx.Commit(); err != nil {
+	if err := s.debitCardRepository.CreateCard(cardWithDetails); err != nil {
 		return err
 	}
 
@@ -128,50 +76,24 @@ func (s *DebitCardServiceImpl) CreateCardWithDetails(cardWithDetails *models.Deb
 
 // UpdateCard updates an existing debit card
 func (s *DebitCardServiceImpl) UpdateCard(card *models.DebitCard, name, color, borderColor string) error {
-	// Use a transaction to ensure all operations succeed or fail together
-	tx, err := s.debitCardRepository.BeginTx()
-	if err != nil {
-		return err
-	}
+	return s.debitCardRepository.UpdateCardByID(card.CardID, card.UserID, func(card *models.DebitCardWithDetails) (bool, error) {
+		isUpdate := false
 
-	// Defer a rollback in case anything fails
-	defer func() {
-		if err != nil {
-			tx.Rollback()
+		if name != "" && card.Name != name {
+			card.Name = name
+			isUpdate = true
 		}
-	}()
-
-	// update name
-	if name != "" {
-		card.Name = name
-	}
-
-	var cardDesign models.DebitCardDesign
-	cardDesign.CardID = card.CardID
-	cardDesign.UserID = card.UserID
-
-	// update color
-	if color != "" {
-		cardDesign.Color = color
-	}
-	// update border color
-	if borderColor != "" {
-		cardDesign.BorderColor = borderColor
-	}
-
-	if borderColor != "" || color != "" {
-		// Update card design
-		if err := s.debitCardRepository.UpdateCardDesignTx(tx, &cardDesign); err != nil {
-			return err
+		if color != "" && card.Color != color {
+			card.Color = color
+			isUpdate = true
 		}
-	}
+		if borderColor != "" && card.BorderColor != borderColor {
+			card.BorderColor = borderColor
+			isUpdate = true
+		}
 
-	// Commit the transaction
-	if err := tx.Commit(); err != nil {
-		return err
-	}
-
-	return nil
+		return isUpdate, nil
+	})
 }
 
 // DeleteCard marks a card as deleted without removing it

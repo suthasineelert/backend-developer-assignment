@@ -4,4 +4,5 @@
 
 - `./app/controllers` folder for functional controllers (used in routes)
 - `./app/models` folder for describe business models of your project
-- `./app/queries` folder for describe queries for models of your project
+- `./app/services` folder for application logic
+- `./app/repositories` folder for data access logic

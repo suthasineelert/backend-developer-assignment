@@ -3,6 +3,8 @@ package controllers
 import (
 	"backend-developer-assignment/app/models"
 	"backend-developer-assignment/app/services"
+	"backend-developer-assignment/pkg/configs"
+	"backend-developer-assignment/pkg/utils"
 
 	"github.com/gofiber/fiber/v2"
 	"go.uber.org/zap"
@@ -53,12 +55,10 @@ func (c *DebitCardController) GetDebitCard(ctx *fiber.Ctx) error {
 // CreateDebitCard creates a new debit card with all its details
 func (c *DebitCardController) CreateDebitCard(ctx *fiber.Ctx) error {
 	type createDebitCardRequest struct {
-		Name        string `json:"name"`
-		Issuer      string `json:"issuer"`
-		Number      string `json:"number"`
-		Color       string `json:"color"`
-		BorderColor string `json:"border_color"`
-		Status      string `json:"status"`
+		Name        string `json:"name" validate:"required,alpha"`
+		Issuer      string `json:"issuer" validate:"required,alpha"`
+		Color       string `json:"color" validate:"iscolor"`
+		BorderColor string `json:"border_color" validate:"iscolor"`
 	}
 	// Parse request body
 	var request createDebitCardRequest
@@ -67,9 +67,19 @@ func (c *DebitCardController) CreateDebitCard(ctx *fiber.Ctx) error {
 		return ErrorResponse(ctx, fiber.StatusBadRequest, "Invalid request body")
 	}
 
-	// Validate required fields
-	if request.Name == "" {
-		return ErrorResponse(ctx, fiber.StatusBadRequest, "name is required")
+	validate := utils.NewValidator()
+	if err := validate.Struct(request); err != nil {
+		logger.Info("Validation error", zap.Error(err))
+		return ErrorResponse(ctx, fiber.StatusBadRequest, utils.ValidatorErrors(err))
+	}
+
+	if request.Color == "" {
+		// set default color
+		request.Color = configs.DEFAULT_DEBIT_CARD_COLOR
+	}
+	if request.BorderColor == "" {
+		// set default border color
+		request.BorderColor = configs.DEFAULT_DEBIT_CARD_BORDER_COLOR
 	}
 
 	userID := ctx.Locals("userID").(string)
@@ -79,7 +89,6 @@ func (c *DebitCardController) CreateDebitCard(ctx *fiber.Ctx) error {
 		UserID:      userID,
 		Name:        request.Name,
 		Issuer:      request.Issuer,
-		Number:      request.Number,
 		Color:       request.Color,
 		BorderColor: request.BorderColor,
 	}
@@ -104,9 +113,9 @@ func (c *DebitCardController) CreateDebitCard(ctx *fiber.Ctx) error {
 // UpdateDebitCard updates an existing debit card
 func (c *DebitCardController) UpdateDebitCard(ctx *fiber.Ctx) error {
 	type updateDebitCardRequest struct {
-		Name        string `json:"name"`
-		Color       string `json:"color"`
-		BorderColor string `json:"border_color"`
+		Name        string `json:"name" validate:"alpha"`
+		Color       string `json:"color" validate:"iscolor"`
+		BorderColor string `json:"border_color" validate:"iscolor"`
 	}
 	// Parse request body
 	var request updateDebitCardRequest
@@ -125,6 +134,12 @@ func (c *DebitCardController) UpdateDebitCard(ctx *fiber.Ctx) error {
 
 	if err := ctx.BodyParser(&request); err != nil {
 		return ErrorResponse(ctx, fiber.StatusBadRequest, "Invalid request body")
+	}
+
+	validate := utils.NewValidator()
+	if err := validate.Struct(request); err != nil {
+		logger.Info("Validation error", zap.Error(err))
+		return ErrorResponse(ctx, fiber.StatusBadRequest, utils.ValidatorErrors(err))
 	}
 
 	if err := c.debitCardService.UpdateCard(existingCard, request.Name, request.Color, request.BorderColor); err != nil {

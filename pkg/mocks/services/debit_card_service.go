@@ -13,9 +13,9 @@ type DebitCardService struct {
 	mock.Mock
 }
 
-// CreateCardWithDetails provides a mock function with given fields: card
-func (_m *DebitCardService) CreateCardWithDetails(card *models.DebitCardWithDetails) error {
-	ret := _m.Called(card)
+// CreateCardWithDetails provides a mock function with given fields: cardWithDetails
+func (_m *DebitCardService) CreateCardWithDetails(cardWithDetails *models.DebitCardWithDetails) error {
+	ret := _m.Called(cardWithDetails)
 
 	if len(ret) == 0 {
 		panic("no return value specified for CreateCardWithDetails")
@@ -23,7 +23,7 @@ func (_m *DebitCardService) CreateCardWithDetails(card *models.DebitCardWithDeta
 
 	var r0 error
 	if rf, ok := ret.Get(0).(func(*models.DebitCardWithDetails) error); ok {
-		r0 = rf(card)
+		r0 = rf(cardWithDetails)
 	} else {
 		r0 = ret.Error(0)
 	}

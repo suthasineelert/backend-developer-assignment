@@ -296,11 +296,10 @@ func (s *DebitCardServiceTestSuite) TestCreateCardWithDetails() {
 	testCases := []struct {
 		name             string
 		cardWithDetails  *models.DebitCardWithDetails
-		mockBeginTxError error
-		mockCreateErrors []error
-		mockCommitError  error
+		mockError        error
 		expectedError    error
 		shouldGenerateID bool
+		expectedStatus   string
 	}{
 		{
 			name: "Success - With Existing ID",
@@ -314,13 +313,11 @@ func (s *DebitCardServiceTestSuite) TestCreateCardWithDetails() {
 				Number:      "4111111111111111",
 				Color:       "#FF0000",
 				BorderColor: "#000000",
-				Status:      "active",
 			},
-			mockBeginTxError: nil,
-			mockCreateErrors: []error{nil, nil, nil, nil},
-			mockCommitError:  nil,
+			mockError:        nil,
 			expectedError:    nil,
 			shouldGenerateID: false,
+			expectedStatus:   string(models.CardStatusInprogress),
 		},
 		{
 			name: "Success - Generate New ID",
@@ -334,16 +331,14 @@ func (s *DebitCardServiceTestSuite) TestCreateCardWithDetails() {
 				Number:      "4111111111111111",
 				Color:       "#FF0000",
 				BorderColor: "#000000",
-				Status:      "active",
 			},
-			mockBeginTxError: nil,
-			mockCreateErrors: []error{nil, nil, nil, nil},
-			mockCommitError:  nil,
+			mockError:        nil,
 			expectedError:    nil,
 			shouldGenerateID: true,
+			expectedStatus:   string(models.CardStatusInprogress),
 		},
 		{
-			name: "Failure - Begin Transaction Error",
+			name: "Failure - Repository Error",
 			cardWithDetails: &models.DebitCardWithDetails{
 				CardID:      "card-123",
 				UserID:      userID,
@@ -354,154 +349,37 @@ func (s *DebitCardServiceTestSuite) TestCreateCardWithDetails() {
 				Number:      "4111111111111111",
 				Color:       "#FF0000",
 				BorderColor: "#000000",
-				Status:      "active",
 			},
-			mockBeginTxError: errors.New("failed to begin transaction"),
-			mockCreateErrors: []error{},
-			mockCommitError:  nil,
-			expectedError:    errors.New("failed to begin transaction"),
-			shouldGenerateID: false,
-		},
-		{
-			name: "Failure - Create Card Error",
-			cardWithDetails: &models.DebitCardWithDetails{
-				CardID:      "card-123",
-				UserID:      userID,
-				Name:        "Test Card",
-				CreatedAt:   now,
-				UpdatedAt:   now,
-				Issuer:      "Visa",
-				Number:      "4111111111111111",
-				Color:       "#FF0000",
-				BorderColor: "#000000",
-				Status:      "active",
-			},
-			mockBeginTxError: nil,
-			mockCreateErrors: []error{errors.New("failed to create card"), nil, nil, nil},
-			mockCommitError:  nil,
+			mockError:        errors.New("failed to create card"),
 			expectedError:    errors.New("failed to create card"),
 			shouldGenerateID: false,
-		},
-		{
-			name: "Failure - Create Card Detail Error",
-			cardWithDetails: &models.DebitCardWithDetails{
-				CardID:      "card-123",
-				UserID:      userID,
-				Name:        "Test Card",
-				CreatedAt:   now,
-				UpdatedAt:   now,
-				Issuer:      "Visa",
-				Number:      "4111111111111111",
-				Color:       "#FF0000",
-				BorderColor: "#000000",
-				Status:      "active",
-			},
-			mockBeginTxError: nil,
-			mockCreateErrors: []error{nil, errors.New("failed to create card detail"), nil, nil},
-			mockCommitError:  nil,
-			expectedError:    errors.New("failed to create card detail"),
-			shouldGenerateID: false,
-		},
-		{
-			name: "Failure - Create Card Design Error",
-			cardWithDetails: &models.DebitCardWithDetails{
-				CardID:      "card-123",
-				UserID:      userID,
-				Name:        "Test Card",
-				CreatedAt:   now,
-				UpdatedAt:   now,
-				Issuer:      "Visa",
-				Number:      "4111111111111111",
-				Color:       "#FF0000",
-				BorderColor: "#000000",
-				Status:      "active",
-			},
-			mockBeginTxError: nil,
-			mockCreateErrors: []error{nil, nil, errors.New("failed to create card design"), nil},
-			mockCommitError:  nil,
-			expectedError:    errors.New("failed to create card design"),
-			shouldGenerateID: false,
-		},
-		{
-			name: "Failure - Create Card Status Error",
-			cardWithDetails: &models.DebitCardWithDetails{
-				CardID:      "card-123",
-				UserID:      userID,
-				Name:        "Test Card",
-				CreatedAt:   now,
-				UpdatedAt:   now,
-				Issuer:      "Visa",
-				Number:      "4111111111111111",
-				Color:       "#FF0000",
-				BorderColor: "#000000",
-				Status:      "active",
-			},
-			mockBeginTxError: nil,
-			mockCreateErrors: []error{nil, nil, nil, errors.New("failed to create card status")},
-			mockCommitError:  nil,
-			expectedError:    errors.New("failed to create card status"),
-			shouldGenerateID: false,
-		},
-		{
-			name: "Failure - Commit Error",
-			cardWithDetails: &models.DebitCardWithDetails{
-				CardID:      "card-123",
-				UserID:      userID,
-				Name:        "Test Card",
-				CreatedAt:   now,
-				UpdatedAt:   now,
-				Issuer:      "Visa",
-				Number:      "4111111111111111",
-				Color:       "#FF0000",
-				BorderColor: "#000000",
-				Status:      "active",
-			},
-			mockBeginTxError: nil,
-			mockCreateErrors: []error{nil, nil, nil, nil},
-			mockCommitError:  errors.New("failed to commit transaction"),
-			expectedError:    errors.New("failed to commit transaction"),
-			shouldGenerateID: false,
+			expectedStatus:   string(models.CardStatusInprogress),
 		},
 	}
 
-	for _, tc := range testCases {
+	for i := range testCases {
+		tc := &testCases[i] // Use pointer to avoid copying the struct
 		s.Run(tc.name, func() {
 			// Reset mocks
 			s.debitCardRepository = new(mocks.DebitCardRepository)
 			s.service = services.NewDebitCardService(s.debitCardRepository)
-			mockTx := new(mocks.MockTx)
-
-			// Setup mock transaction
-			mockTx.On("Commit").Return(tc.mockCommitError)
-			mockTx.On("Rollback").Return(nil)
-
-			// Mock BeginTx
-			s.debitCardRepository.On("BeginTx").Return(mockTx, tc.mockBeginTxError)
-
-			if tc.mockBeginTxError == nil {
-				// Mock CreateCardTx if we get past BeginTx
-				if len(tc.mockCreateErrors) > 0 {
-					s.debitCardRepository.On("CreateCardTx", mockTx, mock.AnythingOfType("*models.DebitCard")).Return(tc.mockCreateErrors[0])
-				}
-
-				// Mock CreateCardDetailTx if CreateCardTx succeeds
-				if len(tc.mockCreateErrors) > 1 && tc.mockCreateErrors[0] == nil {
-					s.debitCardRepository.On("CreateCardDetailTx", mockTx, mock.AnythingOfType("*models.DebitCardDetail")).Return(tc.mockCreateErrors[1])
-				}
-
-				// Mock CreateCardDesignTx if CreateCardDetailTx succeeds
-				if len(tc.mockCreateErrors) > 2 && tc.mockCreateErrors[0] == nil && tc.mockCreateErrors[1] == nil {
-					s.debitCardRepository.On("CreateCardDesignTx", mockTx, mock.AnythingOfType("*models.DebitCardDesign")).Return(tc.mockCreateErrors[2])
-				}
-
-				// Mock CreateCardStatusTx if CreateCardDesignTx succeeds
-				if len(tc.mockCreateErrors) > 3 && tc.mockCreateErrors[0] == nil && tc.mockCreateErrors[1] == nil && tc.mockCreateErrors[2] == nil {
-					s.debitCardRepository.On("CreateCardStatusTx", mockTx, mock.AnythingOfType("*models.DebitCardStatus")).Return(tc.mockCreateErrors[3])
-				}
-			}
 
 			// Save the original CardID for later comparison
 			originalCardID := tc.cardWithDetails.CardID
+
+			// Mock the CreateCard method
+			s.debitCardRepository.On("CreateCard", mock.MatchedBy(func(card *models.DebitCardWithDetails) bool {
+				// Verify the card has the expected values and status is set to in-progress
+				if tc.shouldGenerateID {
+					return card.UserID == tc.cardWithDetails.UserID &&
+						card.Name == tc.cardWithDetails.Name &&
+						card.Status == tc.expectedStatus
+				}
+				return card.CardID == tc.cardWithDetails.CardID &&
+					card.UserID == tc.cardWithDetails.UserID &&
+					card.Name == tc.cardWithDetails.Name &&
+					card.Status == tc.expectedStatus
+			})).Return(tc.mockError)
 
 			// Call the service method
 			err := s.service.CreateCardWithDetails(tc.cardWithDetails)
@@ -519,6 +397,8 @@ func (s *DebitCardServiceTestSuite) TestCreateCardWithDetails() {
 				} else {
 					assert.Equal(s.T(), originalCardID, tc.cardWithDetails.CardID)
 				}
+				// Verify status was set correctly
+				assert.Equal(s.T(), tc.expectedStatus, tc.cardWithDetails.Status)
 			}
 
 			// Verify expected method calls
@@ -538,9 +418,7 @@ func (s *DebitCardServiceTestSuite) TestUpdateCard() {
 		newName            string
 		newColor           string
 		newBorderColor     string
-		mockBeginTxError   error
-		mockUpdateError    error
-		mockCommitError    error
+		mockError          error
 		expectedError      error
 		shouldUpdateName   bool
 		shouldUpdateDesign bool
@@ -555,9 +433,7 @@ func (s *DebitCardServiceTestSuite) TestUpdateCard() {
 			newName:            "New Name",
 			newColor:           "",
 			newBorderColor:     "",
-			mockBeginTxError:   nil,
-			mockUpdateError:    nil,
-			mockCommitError:    nil,
+			mockError:          nil,
 			expectedError:      nil,
 			shouldUpdateName:   true,
 			shouldUpdateDesign: false,
@@ -572,9 +448,7 @@ func (s *DebitCardServiceTestSuite) TestUpdateCard() {
 			newName:            "",
 			newColor:           "#00FF00",
 			newBorderColor:     "#0000FF",
-			mockBeginTxError:   nil,
-			mockUpdateError:    nil,
-			mockCommitError:    nil,
+			mockError:          nil,
 			expectedError:      nil,
 			shouldUpdateName:   false,
 			shouldUpdateDesign: true,
@@ -589,15 +463,13 @@ func (s *DebitCardServiceTestSuite) TestUpdateCard() {
 			newName:            "New Name",
 			newColor:           "#00FF00",
 			newBorderColor:     "#0000FF",
-			mockBeginTxError:   nil,
-			mockUpdateError:    nil,
-			mockCommitError:    nil,
+			mockError:          nil,
 			expectedError:      nil,
 			shouldUpdateName:   true,
 			shouldUpdateDesign: true,
 		},
 		{
-			name: "Failure - Begin Transaction Error",
+			name: "Failure - Repository Error",
 			card: &models.DebitCard{
 				CardID: cardID,
 				UserID: userID,
@@ -606,44 +478,8 @@ func (s *DebitCardServiceTestSuite) TestUpdateCard() {
 			newName:            "New Name",
 			newColor:           "#00FF00",
 			newBorderColor:     "#0000FF",
-			mockBeginTxError:   errors.New("failed to begin transaction"),
-			mockUpdateError:    nil,
-			mockCommitError:    nil,
-			expectedError:      errors.New("failed to begin transaction"),
-			shouldUpdateName:   true,
-			shouldUpdateDesign: true,
-		},
-		{
-			name: "Failure - Update Design Error",
-			card: &models.DebitCard{
-				CardID: cardID,
-				UserID: userID,
-				Name:   "Old Name",
-			},
-			newName:            "New Name",
-			newColor:           "#00FF00",
-			newBorderColor:     "#0000FF",
-			mockBeginTxError:   nil,
-			mockUpdateError:    errors.New("failed to update design"),
-			mockCommitError:    nil,
-			expectedError:      errors.New("failed to update design"),
-			shouldUpdateName:   true,
-			shouldUpdateDesign: true,
-		},
-		{
-			name: "Failure - Commit Error",
-			card: &models.DebitCard{
-				CardID: cardID,
-				UserID: userID,
-				Name:   "Old Name",
-			},
-			newName:            "New Name",
-			newColor:           "#00FF00",
-			newBorderColor:     "#0000FF",
-			mockBeginTxError:   nil,
-			mockUpdateError:    nil,
-			mockCommitError:    errors.New("failed to commit transaction"),
-			expectedError:      errors.New("failed to commit transaction"),
+			mockError:          errors.New("failed to update card"),
+			expectedError:      errors.New("failed to update card"),
 			shouldUpdateName:   true,
 			shouldUpdateDesign: true,
 		},
@@ -655,28 +491,43 @@ func (s *DebitCardServiceTestSuite) TestUpdateCard() {
 			// Reset mocks
 			s.debitCardRepository = new(mocks.DebitCardRepository)
 			s.service = services.NewDebitCardService(s.debitCardRepository)
-			mockTx := new(mocks.MockTx)
 
-			// Setup mock transaction
-			mockTx.On("Commit").Return(tc.mockCommitError)
-			mockTx.On("Rollback").Return(nil)
-
-			// Mock BeginTx
-			s.debitCardRepository.On("BeginTx").Return(mockTx, tc.mockBeginTxError)
-
-			if tc.mockBeginTxError == nil && tc.shouldUpdateDesign {
-				// Mock UpdateCardDesignTx if we need to update design
-				s.debitCardRepository.On("UpdateCardDesignTx", mockTx, mock.MatchedBy(func(design *models.DebitCardDesign) bool {
-					// Verify the design has the expected values
-					return design.CardID == tc.card.CardID &&
-						design.UserID == tc.card.UserID &&
-						(tc.newColor == "" || design.Color == tc.newColor) &&
-						(tc.newBorderColor == "" || design.BorderColor == tc.newBorderColor)
-				})).Return(tc.mockUpdateError)
-			}
-
-			// Save original name for verification
-			originalName := tc.card.Name
+			// Mock the UpdateCardByID method
+			s.debitCardRepository.On("UpdateCardByID", tc.card.CardID, tc.card.UserID, mock.AnythingOfType("func(*models.DebitCardWithDetails) (bool, error)")).
+				Return(tc.mockError).
+				Run(func(args mock.Arguments) {
+					// Extract and call the callback function to verify it works correctly
+					updateFn := args.Get(2).(func(*models.DebitCardWithDetails) (bool, error))
+					
+					// Create a test card with details to pass to the callback
+					cardWithDetails := &models.DebitCardWithDetails{
+						CardID:      tc.card.CardID,
+						UserID:      tc.card.UserID,
+						Name:        tc.card.Name,
+						Color:       "original-color",
+						BorderColor: "original-border",
+					}
+					
+					// Call the update function
+					updated, _ := updateFn(cardWithDetails)
+					
+					// Verify the card was updated as expected
+					if tc.shouldUpdateName {
+						assert.Equal(s.T(), tc.newName, cardWithDetails.Name)
+					}
+					if tc.shouldUpdateDesign {
+						if tc.newColor != "" {
+							assert.Equal(s.T(), tc.newColor, cardWithDetails.Color)
+						}
+						if tc.newBorderColor != "" {
+							assert.Equal(s.T(), tc.newBorderColor, cardWithDetails.BorderColor)
+						}
+					}
+					
+					// Verify the update flag is set correctly
+					expectedUpdate := tc.shouldUpdateName || tc.shouldUpdateDesign
+					assert.Equal(s.T(), expectedUpdate, updated)
+				})
 
 			// Call the service method
 			err := s.service.UpdateCard(tc.card, tc.newName, tc.newColor, tc.newBorderColor)
@@ -687,13 +538,6 @@ func (s *DebitCardServiceTestSuite) TestUpdateCard() {
 				assert.Equal(s.T(), tc.expectedError.Error(), err.Error())
 			} else {
 				assert.NoError(s.T(), err)
-
-				// Verify name was updated if expected
-				if tc.shouldUpdateName {
-					assert.Equal(s.T(), tc.newName, tc.card.Name)
-				} else {
-					assert.Equal(s.T(), originalName, tc.card.Name)
-				}
 			}
 
 			// Verify expected method calls
