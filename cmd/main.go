@@ -86,8 +86,9 @@ func main() {
 	middleware.FiberMiddleware(app) // Register Fiber's middleware for app.
 
 	// Initialize repoList, services, and controllers
+	txProvider := repositories.NewTransactionProvider(db)
 	repoList := repositories.InitRepository(db)
-	serviceList := services.InitService(repoList)
+	serviceList := services.InitService(repoList, txProvider)
 	controllerList := controllers.InitController(serviceList)
 	// Routes
 	routes.InitRoutes(app, controllerList)

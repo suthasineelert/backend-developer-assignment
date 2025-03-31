@@ -12,9 +12,11 @@ func AccountRoute(route fiber.Router, controller *controllers.Controller) {
 	accountRoutes := route.Group("/accounts", middleware.AuthProtected()...)
 	accountRoutes.Get("/", controller.AccountController.ListAccounts)
 	accountRoutes.Get("/:id", controller.AccountController.GetAccount)
-	accountRoutes.Get("/:id", controller.AccountController.UpdateAccount)
+	accountRoutes.Patch("/:id", controller.AccountController.UpdateAccount)
 	accountRoutes.Post("", controller.AccountController.CreateAccount)
+	accountRoutes.Post("/:id/main", controller.AccountController.SetMainAccount)
 	accountRoutes.Post("/:id/deposit", controller.AccountController.Deposit)
 	accountRoutes.Post("/:id/withdraw", controller.AccountController.Withdraw)
 	accountRoutes.Post("/:id/transfer", controller.AccountController.Transfer)
+
 }

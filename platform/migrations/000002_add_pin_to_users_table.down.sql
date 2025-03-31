@@ -1,2 +1,2 @@
 ALTER TABLE users
-RENAME COLUMN pin TO dummy_col_1;
+DROP COLUMN pin;

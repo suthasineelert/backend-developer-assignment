@@ -1,6 +1,9 @@
 package services
 
-import "backend-developer-assignment/app/repositories"
+import (
+	"backend-developer-assignment/app/repositories"
+	"backend-developer-assignment/pkg/middleware"
+)
 
 type Service struct {
 	UserService        UserService
@@ -9,11 +12,13 @@ type Service struct {
 	AccountService     AccountService
 }
 
-func InitService(repo *repositories.Repository) *Service {
+var logger = middleware.GetLogger()
+
+func InitService(repo *repositories.Repository, txProvider repositories.TxProvider) *Service {
 	return &Service{
 		UserService:        NewUserService(repo.UserRepository, repo.UserGreetingsRepository),
 		TransactionService: NewTransactionService(repo.TransactionRepository),
 		DebitCardService:   NewDebitCardService(repo.DebitCardRepository),
-		AccountService:     NewAccountService(repo.AccountRepository),
+		AccountService:     NewAccountService(repo.AccountRepository, repo.TransactionRepository, txProvider),
 	}
 }

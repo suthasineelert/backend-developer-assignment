@@ -28,5 +28,8 @@ func InitController(service *services.Service) *Controller {
 }
 
 func ErrorResponse(ctx *fiber.Ctx, statusCode int, message string) error {
-	return ctx.Status(statusCode).JSON(message)
+	return ctx.Status(statusCode).JSON(fiber.Map{
+		"code":    string(statusCode),
+		"message": message,
+	})
 }

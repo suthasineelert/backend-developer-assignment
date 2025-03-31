@@ -1,8 +1,3 @@
-ALTER TABLE users
-DROP COLUMN amount IF EXISTS;
-
-DROP COLUMN transaction_type IF EXISTS;
-
-DROP COLUMN created_at IF EXISTS;
-
-DROP COLUMN updated_at IF EXISTS;
+ALTER TABLE transactions
+DROP COLUMN amount,
+DROP COLUMN transaction_type;

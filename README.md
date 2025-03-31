@@ -31,12 +31,12 @@ make docker-compose.up
 - [x] Get User Greeting
 - [x] Update User Greeting
 - [x] Get User Transaction
-- [] Add Money to Account
-- [] Withdraw Money from Account
-- [] List Account
-- [] Get Account
-- [] Update Main Account
-- [] Update Account (Name, Color, Border Color)
+- [x] Add Money to Account
+- [x] Withdraw Money from Account
+- [x] List Account
+- [x] Get Account
+- [x] Update Main Account
+- [x] Update Account (Name, Color, Border Color)
 - [x] List Debit Card
 - [x] Update Debit Card (Name, Color, Border Color)
 - [x] Create Debit Card

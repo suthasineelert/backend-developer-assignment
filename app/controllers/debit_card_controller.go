@@ -6,7 +6,7 @@ import (
 	"backend-developer-assignment/pkg/configs"
 	"backend-developer-assignment/pkg/utils"
 
-	"github.com/gofiber/fiber/v2"
+	fiber "github.com/gofiber/fiber/v2"
 	"go.uber.org/zap"
 )
 

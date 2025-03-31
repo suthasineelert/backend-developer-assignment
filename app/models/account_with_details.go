@@ -7,7 +7,7 @@ type AccountWithDetails struct {
 	// Account fields
 	AccountID     string    `json:"account_id"`
 	UserID        string    `json:"user_id"`
-	Type          string    `json:"type"`
+	Type          string    `json:"type"` // saving-account, credit-loan, goal-driven-saving
 	Currency      string    `json:"currency"`
 	AccountNumber string    `json:"account_number"`
 	Issuer        string    `json:"issuer"`

@@ -28,6 +28,7 @@ type UserControllerTestSuite struct {
 	app         *fiber.App
 	mockService *mocks.UserService
 	testToken   string
+	testUserID  string
 }
 
 // SetupSuite runs once before all tests
@@ -35,8 +36,11 @@ func (s *UserControllerTestSuite) SetupSuite() {
 	// Set up JWT environment for testing
 	os.Setenv("JWT_SECRET_KEY", "test-secret-key")
 
-	// Generate a test token
-	s.testToken = s.generateTestToken()
+	// Generate a test user ID
+	s.testUserID = uuid.New().String()
+
+	// Generate a test token with the test user ID
+	s.testToken = s.generateTestToken(s.testUserID)
 }
 
 // SetupTest runs before each test case
@@ -53,10 +57,10 @@ func (s *UserControllerTestSuite) SetupTest() {
 }
 
 // Helper function to generate a test JWT token
-func (s *UserControllerTestSuite) generateTestToken() string {
+func (s *UserControllerTestSuite) generateTestToken(userID string) string {
 	// Create token claims
 	claims := jwt.MapClaims{
-		"id":  uuid.New().String(),
+		"id":  userID,
 		"exp": time.Now().Add(time.Hour * 24).Unix(), // 24 hours
 	}
 
@@ -83,11 +87,11 @@ func (s *UserControllerTestSuite) testResponse(resp *http.Response, expectedCode
 // TestGreeting_Success checks if greeting retrieval works
 func (s *UserControllerTestSuite) TestGreeting_Success() {
 	greeting := &models.UserGreeting{
-		UserID:   uuid.New().String(),
+		UserID:   s.testUserID,
 		Greeting: "Hello, welcome back!",
 	}
 	// Setup mock expectations
-	s.mockService.On("GetUserGreetingByID", mock.Anything).Return(greeting, nil)
+	s.mockService.On("GetUserGreetingByID", s.testUserID).Return(greeting, nil)
 
 	// Create request
 	req := httptest.NewRequest(http.MethodGet, "/users/greeting", http.NoBody)
@@ -108,7 +112,7 @@ func (s *UserControllerTestSuite) TestGreeting_Success() {
 // TestGreeting_NotFound checks if missing greeting returns 404
 func (s *UserControllerTestSuite) TestGreeting_NotFound() {
 	// Setup mock expectations
-	s.mockService.On("GetUserGreetingByID", mock.Anything).Return(nil, errors.New("user greeting not found"))
+	s.mockService.On("GetUserGreetingByID", s.testUserID).Return(nil, errors.New("user greeting not found"))
 
 	// Create request
 	req := httptest.NewRequest(http.MethodGet, "/users/greeting", http.NoBody)
@@ -144,7 +148,9 @@ func (s *UserControllerTestSuite) TestGreeting_Unauthorized() {
 // TestUpdateUserGreeting_Success checks if greeting update works
 func (s *UserControllerTestSuite) TestUpdateUserGreeting_Success() {
 	// Setup mock expectations
-	s.mockService.On("UpdateUserGreeting", mock.Anything).Return(nil)
+	s.mockService.On("UpdateUserGreeting", mock.MatchedBy(func(greeting *models.UserGreeting) bool {
+		return greeting.UserID == s.testUserID && greeting.Greeting == "Updated greeting message"
+	})).Return(nil)
 
 	// Create request body
 	requestBody := map[string]string{
@@ -196,7 +202,9 @@ func (s *UserControllerTestSuite) TestUpdateUserGreeting_BadRequest() {
 // TestUpdateUserGreeting_UpdateFailed checks if service error returns 404
 func (s *UserControllerTestSuite) TestUpdateUserGreeting_UpdateFailed() {
 	// Setup mock expectations
-	s.mockService.On("UpdateUserGreeting", mock.Anything).Return(errors.New("update failed"))
+	s.mockService.On("UpdateUserGreeting", mock.MatchedBy(func(greeting *models.UserGreeting) bool {
+		return greeting.UserID == s.testUserID && greeting.Greeting == "Updated greeting message"
+	})).Return(errors.New("update failed"))
 
 	// Create request body
 	requestBody := map[string]string{
@@ -229,13 +237,13 @@ func (s *UserControllerTestSuite) TestUpdateUserGreeting_UpdateFailed() {
 func (s *UserControllerTestSuite) TestGetUser_Success() {
 	// Create a test user
 	testUser := &models.User{
-		UserID: uuid.New().String(),
+		UserID: s.testUserID,
 		Name:   "Test User",
 		PIN:    "123456",
 	}
 
 	// Setup mock expectations
-	s.mockService.On("GetUserByID", mock.Anything).Return(testUser, nil)
+	s.mockService.On("GetUserByID", s.testUserID).Return(testUser, nil)
 
 	// Create request
 	req := httptest.NewRequest(http.MethodGet, "/users/profile", http.NoBody)
@@ -264,7 +272,7 @@ func (s *UserControllerTestSuite) TestGetUser_Success() {
 // TestGetUser_NotFound checks if missing user returns 404
 func (s *UserControllerTestSuite) TestGetUser_NotFound() {
 	// Setup mock expectations
-	s.mockService.On("GetUserByID", mock.Anything).Return(nil, errors.New("user not found"))
+	s.mockService.On("GetUserByID", s.testUserID).Return(nil, errors.New("user not found"))
 
 	// Create request
 	req := httptest.NewRequest(http.MethodGet, "/users/profile", http.NoBody)
@@ -306,7 +314,9 @@ func (s *UserControllerTestSuite) TestGetUser_Unauthorized() {
 // TestUpdateUser_Success checks if user update works correctly
 func (s *UserControllerTestSuite) TestUpdateUser_Success() {
 	// Setup mock expectations
-	s.mockService.On("UpdateUser", mock.Anything).Return(nil)
+	s.mockService.On("UpdateUser", mock.MatchedBy(func(user *models.User) bool {
+		return user.UserID == s.testUserID && user.Name == "Updated User Name"
+	})).Return(nil)
 
 	// Create request body
 	requestBody := map[string]string{
@@ -331,6 +341,7 @@ func (s *UserControllerTestSuite) TestUpdateUser_Success() {
 	s.NoError(err)
 
 	s.Equal("Updated User Name", respUser.Name)
+	s.Equal(s.testUserID, respUser.UserID)
 
 	// Verify expected method calls
 	s.mockService.AssertExpectations(s.T())
@@ -360,7 +371,9 @@ func (s *UserControllerTestSuite) TestUpdateUser_BadRequest() {
 // TestUpdateUser_NotFound checks if service error returns 404
 func (s *UserControllerTestSuite) TestUpdateUser_NotFound() {
 	// Setup mock expectations
-	s.mockService.On("UpdateUser", mock.Anything).Return(errors.New("user not found"))
+	s.mockService.On("UpdateUser", mock.MatchedBy(func(user *models.User) bool {
+		return user.UserID == s.testUserID && user.Name == "Updated User Name"
+	})).Return(errors.New("user not found"))
 
 	// Create request body
 	requestBody := map[string]string{
@@ -385,6 +398,35 @@ func (s *UserControllerTestSuite) TestUpdateUser_NotFound() {
 	s.NoError(err)
 
 	s.Equal("User not found", respBody["message"])
+
+	// Verify expected method calls
+	s.mockService.AssertExpectations(s.T())
+}
+
+// TestUpdateUser_EmptyName checks if empty name validation works
+func (s *UserControllerTestSuite) TestUpdateUser_EmptyName() {
+	// Create request body with empty name
+	requestBody := map[string]string{
+		"name": "",
+	}
+	requestJSON, _ := json.Marshal(requestBody)
+
+	// Create request
+	req := httptest.NewRequest(http.MethodPatch, "/users/profile", bytes.NewReader(requestJSON))
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", "Bearer "+s.testToken)
+
+	// Setup mock expectations - we expect the service to be called even with empty name
+	s.mockService.On("UpdateUser", mock.MatchedBy(func(user *models.User) bool {
+		return user.UserID == s.testUserID && user.Name == ""
+	})).Return(nil)
+
+	// Test the endpoint
+	resp, err := s.app.Test(req)
+	s.NoError(err)
+
+	// Check response
+	s.Equal(fiber.StatusOK, resp.StatusCode)
 
 	// Verify expected method calls
 	s.mockService.AssertExpectations(s.T())

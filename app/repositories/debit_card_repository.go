@@ -162,6 +162,7 @@ func (r *DebitCardRepositoryImpl) GetCardStatusByID(cardID string) (*models.Debi
 }
 
 // UpdateCardWithDetails updates a debit card with all related details
+// UpdateCardByID updates a debit card with all related details
 func (r *DebitCardRepositoryImpl) UpdateCardByID(cardID, userID string, updateFn func(card *models.DebitCardWithDetails) (bool, error)) error {
 	return runInTx(r.DB, func(tx *sqlx.Tx) error {
 		// Get the existing card with details
@@ -203,38 +204,34 @@ func (r *DebitCardRepositoryImpl) UpdateCardByID(cardID, userID string, updateFn
 		now := time.Now()
 		card.UpdatedAt = now
 
-		// Update the card
-		updateCardQuery := `UPDATE debit_cards 
-						   SET name = ?, updated_at = ? 
-						   WHERE card_id = ? AND deleted_at IS NULL`
-		_, err = tx.Exec(updateCardQuery, card.Name, now, card.CardID)
-		if err != nil {
-			return err
-		}
-
-		// Update card details
-		updateDetailQuery := `UPDATE debit_card_details 
-							 SET issuer = ?, number = ? 
-							 WHERE card_id = ?`
-		_, err = tx.Exec(updateDetailQuery, card.Issuer, card.Number, card.CardID)
-		if err != nil {
-			return err
-		}
-
-		// Update card design
-		updateDesignQuery := `UPDATE debit_card_design 
-							 SET color = ?, border_color = ? 
-							 WHERE card_id = ?`
-		_, err = tx.Exec(updateDesignQuery, card.Color, card.BorderColor, card.CardID)
-		if err != nil {
-			return err
-		}
-
-		// Update card status
-		updateStatusQuery := `UPDATE debit_card_status 
-							 SET status = ? 
-							 WHERE card_id = ?`
-		_, err = tx.Exec(updateStatusQuery, card.Status, card.CardID)
+		// Use a single query with joins to update all related tables
+		updateQuery := `
+			UPDATE debit_cards c
+			JOIN debit_card_details d ON c.card_id = d.card_id
+			JOIN debit_card_design ds ON c.card_id = ds.card_id
+			JOIN debit_card_status s ON c.card_id = s.card_id
+			SET 
+				c.name = ?, 
+				c.updated_at = ?,
+				d.issuer = ?,
+				d.number = ?,
+				ds.color = ?,
+				ds.border_color = ?,
+				s.status = ?
+			WHERE 
+				c.card_id = ? AND c.deleted_at IS NULL
+		`
+		_, err = tx.Exec(
+			updateQuery,
+			card.Name,
+			now,
+			card.Issuer,
+			card.Number,
+			card.Color,
+			card.BorderColor,
+			card.Status,
+			card.CardID,
+		)
 		if err != nil {
 			return err
 		}

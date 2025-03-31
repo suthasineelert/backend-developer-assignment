@@ -1,2 +1,2 @@
 ALTER TABLE `users`
-RENAME COLUMN dummy_col_1 TO pin;
+ADD COLUMN `pin` VARCHAR(255) NOT NULL;

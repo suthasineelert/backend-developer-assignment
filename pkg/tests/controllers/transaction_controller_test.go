@@ -9,6 +9,7 @@ import (
 	"errors"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"testing"
 	"time"
 
@@ -25,22 +26,30 @@ type TransactionControllerTestSuite struct {
 	testUserID             string
 }
 
+// SetupSuite runs once before all tests
+func (s *TransactionControllerTestSuite) SetupSuite() {
+	// Set up JWT environment for testing
+	os.Setenv("JWT_SECRET_KEY", "test-secret-key")
+}
+
 func (s *TransactionControllerTestSuite) SetupTest() {
 	s.app = fiber.New()
 	s.mockTransactionService = new(mocks.TransactionService)
-	s.testUserID = "000018b0e1a211ef95a30242ac180002"
+	s.testUserID = "test-user-id"
 
 	// Create a test JWT token
 	claims := jwt.MapClaims{
-		"sub": s.testUserID,
+		"id":  s.testUserID,
 		"exp": time.Now().Add(time.Hour * 72).Unix(),
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	tokenString, _ := token.SignedString([]byte("your-secret-key"))
+	tokenString, _ := token.SignedString([]byte(os.Getenv("JWT_SECRET_KEY")))
 	s.testToken = tokenString
 
 	// Setup controller and routes
 	transactionController := controllers.NewTransactionController(s.mockTransactionService)
+
+	// Group routes with auth middleware
 	route := s.app.Group("/transactions", middleware.AuthProtected()...)
 	route.Get("/", transactionController.ListTransactions)
 }
@@ -49,7 +58,7 @@ func (s *TransactionControllerTestSuite) TestListTransactions_Success() {
 	// Setup mock data
 	mockTransactions := []*models.Transaction{
 		{
-			TransactionID:   "000018b0e1a211ef95a30242ac180003",
+			TransactionID:   "transaction-1",
 			UserID:          s.testUserID,
 			Name:            "Test Transaction 1",
 			Amount:          100.00,
@@ -60,7 +69,7 @@ func (s *TransactionControllerTestSuite) TestListTransactions_Success() {
 			},
 		},
 		{
-			TransactionID:   "000018b0e1a211ef95a30242ac180004",
+			TransactionID:   "transaction-2",
 			UserID:          s.testUserID,
 			Name:            "Test Transaction 2",
 			Amount:          200.00,
@@ -107,7 +116,7 @@ func (s *TransactionControllerTestSuite) TestListTransactions_WithPagination() {
 	// Setup mock data
 	mockTransactions := []*models.Transaction{
 		{
-			TransactionID:   "000018b0e1a211ef95a30242ac180005",
+			TransactionID:   "transaction-3",
 			UserID:          s.testUserID,
 			Name:            "Test Transaction 3",
 			Amount:          300.00,

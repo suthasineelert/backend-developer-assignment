@@ -3,8 +3,6 @@ package repositories
 import (
 	"backend-developer-assignment/app/models"
 	"time"
-
-	"github.com/jmoiron/sqlx"
 )
 
 // TransactionRepository is an interface for transaction repository
@@ -17,11 +15,11 @@ type TransactionRepository interface {
 
 // TransactionRepositoryImpl will hold all the repository operations related to transactions.
 type TransactionRepositoryImpl struct {
-	DB *sqlx.DB
+	DB DB
 }
 
 // NewTransactionRepository creates a new instance of TransactionRepository.
-func NewTransactionRepository(db *sqlx.DB) TransactionRepository {
+func NewTransactionRepository(db DB) TransactionRepository {
 	return &TransactionRepositoryImpl{
 		DB: db,
 	}

@@ -4,7 +4,7 @@ import (
 	"log"
 	"os"
 
-	"github.com/gofiber/contrib/fiberzap/v2"
+	fiberzap "github.com/gofiber/contrib/fiberzap/v2"
 	fiber "github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"go.uber.org/zap"
