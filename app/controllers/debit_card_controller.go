@@ -55,10 +55,10 @@ func (c *DebitCardController) GetDebitCard(ctx *fiber.Ctx) error {
 // CreateDebitCard creates a new debit card with all its details
 func (c *DebitCardController) CreateDebitCard(ctx *fiber.Ctx) error {
 	type createDebitCardRequest struct {
-		Name        string `json:"name" validate:"required,alpha"`
-		Issuer      string `json:"issuer" validate:"required,alpha"`
-		Color       string `json:"color" validate:"iscolor"`
-		BorderColor string `json:"border_color" validate:"iscolor"`
+		Name        string `json:"name" validate:"required,alphanumspace"`
+		Issuer      string `json:"issuer" validate:"required,alphanumspace"`
+		Color       string `json:"color" validate:"omitempty,iscolor"`
+		BorderColor string `json:"border_color" validate:"omitempty,iscolor"`
 	}
 	// Parse request body
 	var request createDebitCardRequest
@@ -113,7 +113,7 @@ func (c *DebitCardController) CreateDebitCard(ctx *fiber.Ctx) error {
 // UpdateDebitCard updates an existing debit card
 func (c *DebitCardController) UpdateDebitCard(ctx *fiber.Ctx) error {
 	type updateDebitCardRequest struct {
-		Name        string `json:"name" validate:"alpha"`
+		Name        string `json:"name" validate:"omitempty,alphanumspace"`
 		Color       string `json:"color" validate:"iscolor"`
 		BorderColor string `json:"border_color" validate:"iscolor"`
 	}

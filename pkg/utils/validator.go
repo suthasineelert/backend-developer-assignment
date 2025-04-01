@@ -2,6 +2,7 @@ package utils
 
 import (
 	"fmt"
+	"regexp"
 	"strings"
 
 	validator "github.com/go-playground/validator/v10"
@@ -20,6 +21,14 @@ func NewValidator() *validator.Validate {
 			return true
 		}
 		return false
+	})
+
+	// Custom validation for alpha with space fields.
+	_ = validate.RegisterValidation("alphanumspace", func(fl validator.FieldLevel) bool {
+		field := fl.Field().String()
+		// Check if the string contains only alphanumeric characters and spaces
+		match, _ := regexp.MatchString("^[a-zA-Z0-9 ]+$", field)
+		return match
 	})
 
 	return validate

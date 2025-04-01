@@ -13,6 +13,7 @@ type Controller struct {
 	TransactionController TransactionController
 	DebitCardController   DebitCardController
 	AccountController     AccountController
+	BannerController      BannerController
 }
 
 var logger = middleware.GetLogger()
@@ -24,6 +25,7 @@ func InitController(service *services.Service) *Controller {
 		TransactionController: *NewTransactionController(service.TransactionService),
 		DebitCardController:   *NewDebitCardController(service.DebitCardService),
 		AccountController:     *NewAccountController(service.AccountService),
+		BannerController:      *NewBannerController(service.BannerService),
 	}
 }
 

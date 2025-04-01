@@ -10,6 +10,7 @@ type Service struct {
 	TransactionService TransactionService
 	DebitCardService   DebitCardService
 	AccountService     AccountService
+	BannerService      BannerService
 }
 
 var logger = middleware.GetLogger()
@@ -20,5 +21,6 @@ func InitService(repo *repositories.Repository, txProvider repositories.TxProvid
 		TransactionService: NewTransactionService(repo.TransactionRepository),
 		DebitCardService:   NewDebitCardService(repo.DebitCardRepository),
 		AccountService:     NewAccountService(repo.AccountRepository, repo.TransactionRepository, txProvider),
+		BannerService:      NewBannerService(repo.BannerRepository),
 	}
 }
