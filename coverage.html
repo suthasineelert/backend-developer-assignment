@@ -1,0 +1,1988 @@
+
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+		<title>controllers: Go Coverage Report</title>
+		<style>
+			body {
+				background: black;
+				color: rgb(80, 80, 80);
+			}
+			body, pre, #legend span {
+				font-family: Menlo, monospace;
+				font-weight: bold;
+			}
+			#topbar {
+				background: black;
+				position: fixed;
+				top: 0; left: 0; right: 0;
+				height: 42px;
+				border-bottom: 1px solid rgb(80, 80, 80);
+			}
+			#content {
+				margin-top: 50px;
+			}
+			#nav, #legend {
+				float: left;
+				margin-left: 10px;
+			}
+			#legend {
+				margin-top: 12px;
+			}
+			#nav {
+				margin-top: 10px;
+			}
+			#legend span {
+				margin: 0 5px;
+			}
+			.cov0 { color: rgb(192, 0, 0) }
+.cov1 { color: rgb(128, 128, 128) }
+.cov2 { color: rgb(116, 140, 131) }
+.cov3 { color: rgb(104, 152, 134) }
+.cov4 { color: rgb(92, 164, 137) }
+.cov5 { color: rgb(80, 176, 140) }
+.cov6 { color: rgb(68, 188, 143) }
+.cov7 { color: rgb(56, 200, 146) }
+.cov8 { color: rgb(44, 212, 149) }
+.cov9 { color: rgb(32, 224, 152) }
+.cov10 { color: rgb(20, 236, 155) }
+
+		</style>
+	</head>
+	<body>
+		<div id="topbar">
+			<div id="nav">
+				<select id="files">
+				
+				<option value="file0">backend-developer-assignment/app/controllers/account_controller.go (77.7%)</option>
+				
+				<option value="file1">backend-developer-assignment/app/controllers/auth_controller.go (83.3%)</option>
+				
+				<option value="file2">backend-developer-assignment/app/controllers/banner_controller.go (93.8%)</option>
+				
+				<option value="file3">backend-developer-assignment/app/controllers/controller.go (50.0%)</option>
+				
+				<option value="file4">backend-developer-assignment/app/controllers/debit_card_controller.go (80.6%)</option>
+				
+				<option value="file5">backend-developer-assignment/app/controllers/transaction_controller.go (100.0%)</option>
+				
+				<option value="file6">backend-developer-assignment/app/controllers/user_controller.go (100.0%)</option>
+				
+				<option value="file7">backend-developer-assignment/app/services/account_service.go (58.7%)</option>
+				
+				<option value="file8">backend-developer-assignment/app/services/banner_service.go (100.0%)</option>
+				
+				<option value="file9">backend-developer-assignment/app/services/debit_card_service.go (96.0%)</option>
+				
+				<option value="file10">backend-developer-assignment/app/services/service.go (0.0%)</option>
+				
+				<option value="file11">backend-developer-assignment/app/services/transaction_service.go (90.6%)</option>
+				
+				<option value="file12">backend-developer-assignment/app/services/user_service.go (100.0%)</option>
+				
+				</select>
+			</div>
+			<div id="legend">
+				<span>not tracked</span>
+			
+				<span class="cov0">not covered</span>
+				<span class="cov8">covered</span>
+			
+			</div>
+		</div>
+		<div id="content">
+		
+		<pre class="file" id="file0" style="display: none">package controllers
+
+import (
+        "backend-developer-assignment/app/models"
+        "backend-developer-assignment/app/services"
+        "backend-developer-assignment/pkg/configs"
+        "backend-developer-assignment/pkg/utils"
+        "errors"
+
+        fiber "github.com/gofiber/fiber/v2"
+        "go.uber.org/zap"
+)
+
+// AccountController handles account-related HTTP requests
+type AccountController struct {
+        accountService services.AccountService
+}
+
+// NewAccountController creates a new AccountController
+func NewAccountController(accountService services.AccountService) *AccountController <span class="cov8" title="1">{
+        return &amp;AccountController{accountService: accountService}
+}</span>
+
+// ListAccounts retrieves all accounts for a user
+//
+//        @Summary                List accounts
+//        @Description        Get all accounts for a user
+//        @Tags                        accounts
+//        @Accept                        json
+//        @Produce                json
+//        @Success                200        {object}        []models.AccountWithDetails
+//        @Router                        /accounts [get]
+func (ac *AccountController) ListAccounts(ctx *fiber.Ctx) error <span class="cov8" title="1">{
+        userID := ctx.Locals("userID").(string)
+
+        // Get accounts from service
+        accounts, err := ac.accountService.GetAccountsWithDetailByUserID(userID)
+        if err != nil </span><span class="cov8" title="1">{
+                return ErrorResponse(ctx, fiber.StatusInternalServerError, err.Error())
+        }</span>
+
+        <span class="cov8" title="1">return ctx.Status(fiber.StatusOK).JSON(accounts)</span>
+}
+
+// GetAccount retrieves a single account by ID
+//
+//        @Summary                Get account
+//        @Description        Get a single account by ID
+//        @Tags                        accounts
+//        @Accept                        json
+//        @Produce                json
+//        @Param                        id        path                string        true        "Account ID"
+//        @Success                200        {object}        models.AccountWithDetails
+//        @Router                        /accounts/{id} [get]
+func (ac *AccountController) GetAccount(ctx *fiber.Ctx) error <span class="cov8" title="1">{
+        // Get account_id from path parameters
+        accountID := ctx.Params("id")
+        if accountID == "" </span><span class="cov0" title="0">{
+                return ErrorResponse(ctx, fiber.StatusBadRequest, "account_id is required")
+        }</span>
+
+        // Get account info
+        <span class="cov8" title="1">account, err := ac.accountService.GetAccountWithDetailByID(accountID)
+        if err != nil </span><span class="cov8" title="1">{
+                return ErrorResponse(ctx, fiber.StatusNotFound, "Account not found")
+        }</span>
+
+        <span class="cov8" title="1">return ctx.Status(fiber.StatusOK).JSON(account)</span>
+}
+
+// CreateAccount handles account creation
+//
+//        @Summary                Create account
+//        @Description        Create a new account
+//        @Tags                        accounts
+//        @Accept                        json
+//        @Produce                json
+//        @Param                        account        body                controllers.CreateAccount.createAccountRequest        true        "Account details"
+//        @Success                201                {object}        models.AccountWithDetails
+//        @Router                        /accounts [post]
+func (ac *AccountController) CreateAccount(ctx *fiber.Ctx) error <span class="cov8" title="1">{
+        type createAccountRequest struct {
+                Type          string  `json:"type" validate:"required,oneof=saving-account credit-loan goal-driven-saving"`
+                Currency      string  `json:"currency" validate:"required,alpha"`
+                AccountNumber string  `json:"account_number" validate:"required"`
+                Issuer        string  `json:"issuer" validate:"required,alpha"`
+                Color         string  `json:"color" validate:"iscolor"`
+                IsMainAccount bool    `json:"is_main_account"`
+                Amount        float64 `json:"amount"`
+        }
+
+        // Parse request body
+        var request createAccountRequest
+
+        if err := ctx.BodyParser(&amp;request); err != nil </span><span class="cov0" title="0">{
+                return ErrorResponse(ctx, fiber.StatusBadRequest, "Invalid request body")
+        }</span>
+
+        <span class="cov8" title="1">validate := utils.NewValidator()
+        if err := validate.Struct(request); err != nil </span><span class="cov8" title="1">{
+                logger.Info("Validation error", zap.Error(err))
+                return ErrorResponse(ctx, fiber.StatusBadRequest, utils.ValidatorErrors(err))
+        }</span>
+
+        <span class="cov8" title="1">if request.Color == "" </span><span class="cov0" title="0">{
+                // set default color
+                request.Color = configs.DEFAULT_ACCOUNT_COLOR
+        }</span>
+
+        <span class="cov8" title="1">userID := ctx.Locals("userID").(string)
+
+        // Create the account with details
+        account := &amp;models.AccountWithDetails{
+                UserID:        userID,
+                Type:          request.Type,
+                Currency:      request.Currency,
+                AccountNumber: request.AccountNumber,
+                Issuer:        request.Issuer,
+                Color:         request.Color,
+                IsMainAccount: request.IsMainAccount,
+                Progress:      0,
+                Amount:        request.Amount,
+        }
+
+        // Create the account with all its details
+        err := ac.accountService.CreateAccountWithDetails(account)
+        if err != nil </span><span class="cov8" title="1">{
+                logger.Error("Failed to create account", zap.Error(err))
+                return ErrorResponse(ctx, fiber.StatusInternalServerError, err.Error())
+        }</span>
+
+        // Retrieve the created account with all details
+        <span class="cov8" title="1">createdAccount, err := ac.accountService.GetAccountWithDetailByID(account.AccountID)
+        if err != nil </span><span class="cov0" title="0">{
+                logger.Error("Failed to retrieve account details after create", zap.Error(err))
+                return ErrorResponse(ctx, fiber.StatusInternalServerError, "Account created but failed to retrieve details")
+        }</span>
+
+        <span class="cov8" title="1">return ctx.Status(fiber.StatusCreated).JSON(createdAccount)</span>
+}
+
+// UpdateAccount updates an existing account
+//
+//        @Summary                Update account
+//        @Description        Update an existing account
+//        @Tags                        accounts
+//        @Accept                        json
+//        @Produce                json
+//        @Param                        id                path                string                                        true        "Account ID"
+//        @Param                        account        body                controllers.UpdateAccount.updateAccountRequest        true        "Account details"
+//        @Success                200                {object}        models.AccountWithDetails
+//        @Router                        /accounts/{id} [patch]
+func (ac *AccountController) UpdateAccount(ctx *fiber.Ctx) error <span class="cov8" title="1">{
+        type updateAccountRequest struct {
+                Type          string `json:"type" validate:"omitempty,oneof=saving-account credit-loan goal-driven-saving"`
+                Currency      string `json:"currency" validate:"omitempty,alpha"`
+                AccountNumber string `json:"account_number" validate:"omitempty"`
+                Issuer        string `json:"issuer" validate:"omitempty,alpha"`
+                Color         string `json:"color" validate:"omitempty,iscolor"`
+                Progress      int    `json:"progress" validate:"omitempty,min=0,max=100"`
+        }
+
+        // Parse request body
+        var request updateAccountRequest
+
+        // Get account_id from path parameters
+        accountID := ctx.Params("id")
+        if accountID == "" </span><span class="cov0" title="0">{
+                return ErrorResponse(ctx, fiber.StatusBadRequest, "account_id is required")
+        }</span>
+
+        // Check if the account exists
+        <span class="cov8" title="1">existingAccount, err := ac.accountService.GetAccountByID(accountID)
+        if err != nil </span><span class="cov8" title="1">{
+                return ErrorResponse(ctx, fiber.StatusNotFound, "Account not found")
+        }</span>
+
+        <span class="cov8" title="1">if err := ctx.BodyParser(&amp;request); err != nil </span><span class="cov0" title="0">{
+                return ErrorResponse(ctx, fiber.StatusBadRequest, "Invalid request body")
+        }</span>
+
+        <span class="cov8" title="1">validate := utils.NewValidator()
+        if err := validate.Struct(request); err != nil </span><span class="cov0" title="0">{
+                logger.Info("Validation error", zap.Error(err))
+                return ErrorResponse(ctx, fiber.StatusBadRequest, utils.ValidatorErrors(err))
+        }</span>
+
+        <span class="cov8" title="1">account := &amp;models.AccountWithDetails{
+                AccountID:     existingAccount.AccountID,
+                UserID:        existingAccount.UserID,
+                Type:          request.Type,
+                Currency:      request.Currency,
+                AccountNumber: request.AccountNumber,
+                Issuer:        request.Issuer,
+                Color:         request.Color,
+                Progress:      request.Progress,
+        }
+
+        if err := ac.accountService.UpdateAccount(account); err != nil </span><span class="cov0" title="0">{
+                logger.Error("Failed to update account", zap.String("account_id", accountID), zap.Error(err))
+                return ErrorResponse(ctx, fiber.StatusInternalServerError, "Failed to update account: "+err.Error())
+        }</span>
+
+        // Retrieve the updated account with all its details
+        <span class="cov8" title="1">updatedAccount, err := ac.accountService.GetAccountWithDetailByID(accountID)
+        if err != nil </span><span class="cov0" title="0">{
+                logger.Error("Account updated but failed to retrieve details", zap.String("account_id", accountID), zap.Error(err))
+                return ErrorResponse(ctx, fiber.StatusInternalServerError, "Account updated but failed to retrieve details")
+        }</span>
+
+        <span class="cov8" title="1">return ctx.Status(fiber.StatusOK).JSON(updatedAccount)</span>
+}
+
+// SetMainAccount sets an account as the main account
+//
+//        @Summary                Set main account
+//        @Description        Set an account as the main account
+//        @Tags                        accounts
+//        @Accept                        json
+//        @Produce                json
+//        @Param                        id        path                string        true        "Account ID"
+//        @Success                200        {object}        map[string]string
+//        @Router                        /accounts/{id}/main [put]
+func (ac *AccountController) SetMainAccount(ctx *fiber.Ctx) error <span class="cov8" title="1">{
+        // Get account_id from path parameters
+        accountID := ctx.Params("id")
+        if accountID == "" </span><span class="cov0" title="0">{
+                return ErrorResponse(ctx, fiber.StatusBadRequest, "account_id is required")
+        }</span>
+
+        // Check if the account exists
+        <span class="cov8" title="1">existingAccount, err := ac.accountService.GetAccountByID(accountID)
+        if err != nil </span><span class="cov8" title="1">{
+                return ErrorResponse(ctx, fiber.StatusNotFound, "Account not found")
+        }</span>
+
+        <span class="cov8" title="1">if err := ac.accountService.SetMainAccount(existingAccount); err != nil </span><span class="cov8" title="1">{
+                logger.Error("Failed to set main account", zap.String("account_id", accountID), zap.Error(err))
+                return ErrorResponse(ctx, fiber.StatusInternalServerError, "Failed to set main account: "+err.Error())
+        }</span>
+
+        <span class="cov8" title="1">return ctx.Status(fiber.StatusOK).JSON(fiber.Map{"message": "Main account set successfully"})</span>
+}
+
+// Withdraw handles withdrawing money from an account
+//
+//        @Summary                Withdraw money
+//        @Description        Withdraw money from an account
+//        @Tags                        accounts
+//        @Accept                        json
+//        @Produce                json
+//        @Param                        id                path                string                        true        "Account ID"
+//        @Param                        amount        body                controllers.Withdraw.withdrawRequest        true        "Amount to withdraw"
+//        @Success                200                {object}        map[string]interface{}
+//        @Router                        /accounts/{id}/withdraw [post]
+func (ac *AccountController) Withdraw(ctx *fiber.Ctx) error <span class="cov8" title="1">{
+        type withdrawRequest struct {
+                Amount float64 `json:"amount" validate:"required,gt=0"`
+        }
+
+        // Get account_id from path parameters
+        accountID := ctx.Params("id")
+        if accountID == "" </span><span class="cov0" title="0">{
+                return ErrorResponse(ctx, fiber.StatusBadRequest, "account_id is required")
+        }</span>
+
+        <span class="cov8" title="1">var request withdrawRequest
+        if err := ctx.BodyParser(&amp;request); err != nil </span><span class="cov0" title="0">{
+                return ErrorResponse(ctx, fiber.StatusBadRequest, "Invalid request body")
+        }</span>
+
+        <span class="cov8" title="1">validate := utils.NewValidator()
+        if err := validate.Struct(request); err != nil </span><span class="cov0" title="0">{
+                logger.Info("Validation error", zap.Error(err))
+                return ErrorResponse(ctx, fiber.StatusBadRequest, utils.ValidatorErrors(err))
+        }</span>
+
+        // Get the account to ensure it exists
+        <span class="cov8" title="1">account, err := ac.accountService.GetAccountWithDetailByID(accountID)
+        if err != nil </span><span class="cov0" title="0">{
+                return ErrorResponse(ctx, fiber.StatusNotFound, "Account not found")
+        }</span>
+
+        // Check if account has sufficient funds
+        <span class="cov8" title="1">if account.Amount &lt; request.Amount </span><span class="cov8" title="1">{
+                return ErrorResponse(ctx, fiber.StatusBadRequest, "Insufficient funds")
+        }</span>
+
+        <span class="cov8" title="1">updatedBalance, err := ac.accountService.WithdrawFromAccount(accountID, request.Amount)
+        if err != nil </span><span class="cov8" title="1">{
+                if err.Error() == "insufficient funds" </span><span class="cov0" title="0">{
+                        return ErrorResponse(ctx, fiber.StatusBadRequest, "Insufficient funds")
+                }</span>
+                <span class="cov8" title="1">logger.Error("Failed to withdraw from account", zap.String("account_id", accountID), zap.Float64("amount", request.Amount), zap.Error(err))
+                return ErrorResponse(ctx, fiber.StatusInternalServerError, "Failed to process withdrawal")</span>
+        }
+
+        <span class="cov8" title="1">return ctx.Status(fiber.StatusOK).JSON(fiber.Map{
+                "message": "Withdrawal successful",
+                "amount":  request.Amount,
+                "balance": updatedBalance,
+        })</span>
+}
+
+// Deposit handles depositing money to an account
+//
+//        @Summary                Deposit money
+//        @Description        Deposit money to an account
+//        @Tags                        accounts
+//        @Accept                        json
+//        @Produce                json
+//        @Param                        id                path                string                        true        "Account ID"
+//        @Param                        amount        body                controllers.Deposit.depositRequest        true        "Amount to deposit"
+//        @Success                200                {object}        map[string]interface{}
+//        @Router                        /accounts/{id}/deposit [post]
+func (ac *AccountController) Deposit(ctx *fiber.Ctx) error <span class="cov8" title="1">{
+        type depositRequest struct {
+                Amount float64 `json:"amount" validate:"required,gt=0"`
+        }
+
+        // Get account_id from path parameters
+        accountID := ctx.Params("id")
+        if accountID == "" </span><span class="cov0" title="0">{
+                return ErrorResponse(ctx, fiber.StatusBadRequest, "account_id is required")
+        }</span>
+
+        <span class="cov8" title="1">var request depositRequest
+        if err := ctx.BodyParser(&amp;request); err != nil </span><span class="cov0" title="0">{
+                return ErrorResponse(ctx, fiber.StatusBadRequest, "Invalid request body")
+        }</span>
+
+        <span class="cov8" title="1">validate := utils.NewValidator()
+        if err := validate.Struct(request); err != nil </span><span class="cov0" title="0">{
+                logger.Info("Validation error", zap.Error(err))
+                return ErrorResponse(ctx, fiber.StatusBadRequest, utils.ValidatorErrors(err))
+        }</span>
+
+        <span class="cov8" title="1">updatedBalance, err := ac.accountService.DepositToAccount(accountID, request.Amount)
+        if err != nil </span><span class="cov8" title="1">{
+                logger.Error("Failed to deposit to account", zap.String("account_id", accountID), zap.Float64("amount", request.Amount), zap.Error(err))
+                return ErrorResponse(ctx, fiber.StatusInternalServerError, "Failed to process deposit")
+        }</span>
+
+        <span class="cov8" title="1">return ctx.Status(fiber.StatusOK).JSON(fiber.Map{
+                "message": "Deposit successful",
+                "amount":  request.Amount,
+                "balance": updatedBalance,
+        })</span>
+}
+
+// Transfer handles transferring money between accounts
+//
+//        @Summary                Transfer money
+//        @Description        Transfer money between accounts
+//        @Tags                        accounts
+//        @Accept                        json
+//        @Produce                json
+//        @Param                        transfer        body                controllers.Transfer.transferRequest        true        "Transfer details"
+//        @Success                200                        {object}        map[string]interface{}
+//        @Router                        /accounts/transfer [post]
+func (ac *AccountController) Transfer(ctx *fiber.Ctx) error <span class="cov8" title="1">{
+        type transferRequest struct {
+                FromAccountID string  `json:"from_account_id" validate:"required"`
+                ToAccountID   string  `json:"to_account_id" validate:"required"`
+                Amount        float64 `json:"amount" validate:"required,gt=0"`
+        }
+
+        var request transferRequest
+        if err := ctx.BodyParser(&amp;request); err != nil </span><span class="cov0" title="0">{
+                return ErrorResponse(ctx, fiber.StatusBadRequest, "Invalid request body")
+        }</span>
+
+        <span class="cov8" title="1">validate := utils.NewValidator()
+        if err := validate.Struct(request); err != nil </span><span class="cov0" title="0">{
+                logger.Info("Validation error", zap.Error(err))
+                return ErrorResponse(ctx, fiber.StatusBadRequest, utils.ValidatorErrors(err))
+        }</span>
+
+        <span class="cov8" title="1">result, err := ac.accountService.TransferBetweenAccounts(
+                request.FromAccountID,
+                request.ToAccountID,
+                request.Amount,
+        )
+
+        if err != nil </span><span class="cov8" title="1">{
+                if errors.Is(err, services.ErrInsufficientFunds) </span><span class="cov8" title="1">{
+                        return ErrorResponse(ctx, fiber.StatusBadRequest, "Insufficient funds in source account")
+                }</span>
+                <span class="cov8" title="1">logger.Error("Failed to transfer between accounts",
+                        zap.String("from_account_id", request.FromAccountID),
+                        zap.String("to_account_id", request.ToAccountID),
+                        zap.Float64("amount", request.Amount),
+                        zap.Error(err))
+                return ErrorResponse(ctx, fiber.StatusInternalServerError, "Failed to process transfer")</span>
+        }
+
+        <span class="cov8" title="1">return ctx.Status(fiber.StatusOK).JSON(fiber.Map{
+                "message":             "Transfer successful",
+                "amount":              request.Amount,
+                "from_account":        request.FromAccountID,
+                "to_account":          request.ToAccountID,
+                "source_balance":      result.SourceBalance,
+                "destination_balance": result.DestinationBalance,
+        })</span>
+}
+</pre>
+		
+		<pre class="file" id="file1" style="display: none">package controllers
+
+import (
+        "backend-developer-assignment/app/models"
+        "backend-developer-assignment/app/services"
+        "backend-developer-assignment/pkg/utils"
+        "fmt"
+        "log"
+        "time"
+
+        fiber "github.com/gofiber/fiber/v2"
+        "go.uber.org/zap"
+)
+
+// AuthController holds the services related to users.
+type AuthController struct {
+        UserService services.UserService
+}
+
+// NewAuthController creates a new AuthController.
+func NewAuthController(userService services.UserService) *AuthController <span class="cov8" title="1">{
+        return &amp;AuthController{
+                UserService: userService,
+        }
+}</span>
+
+// VerifyPin method for user PIN verification.
+// @Description Verify user PIN and return JWT token
+// @Summary Verify PIN and get JWT token
+// @Tags Authentication
+// @Accept json
+// @Produce json
+// @Param request body controllers.VerifyPin.verifyPinRequest true "PIN verification request"
+// @Success 200 {object} object{tokens=object{access=string,refresh=string}} "JWT tokens"
+// @Failure 400 {object} base.ErrorResponse "Invalid input format"
+// @Failure 401 {object} base.ErrorResponse "Invalid PIN"
+// @Failure 404 {object} base.ErrorResponse "User does not exist"
+// @Failure 500 {object} base.ErrorResponse "Failed to generate token"
+// @Router /auth/verify-pin [post]
+func (c *AuthController) VerifyPin(ctx *fiber.Ctx) error <span class="cov8" title="1">{
+        type verifyPinRequest struct {
+                UserID string `json:"user_id"`
+                PIN    string `json:"pin"`
+        }
+        var request verifyPinRequest
+        if err := ctx.BodyParser(&amp;request); err != nil </span><span class="cov0" title="0">{
+                return ErrorResponse(ctx, fiber.StatusBadRequest, "Invalid input format: "+err.Error())
+        }</span>
+
+        // Fetch stored PIN hash
+        <span class="cov8" title="1">var user *models.User
+        user, err := c.UserService.GetUserByID(request.UserID)
+        if err != nil </span><span class="cov8" title="1">{
+                logger.Error("Failed to get user by ID", zap.String("user_id", request.UserID), zap.Error(err))
+                return ErrorResponse(ctx, fiber.StatusNotFound, "User does not exist")
+        }</span>
+
+        // Verify PIN
+        <span class="cov8" title="1">if !utils.VerifyPIN(user.PIN, request.PIN) </span><span class="cov8" title="1">{
+                logger.Error("Invalid PIN", zap.String("user_id", request.UserID))
+                return ErrorResponse(ctx, fiber.StatusUnauthorized, "Invalid PIN")
+        }</span>
+
+        // Generate JWT Token
+        <span class="cov8" title="1">token, err := utils.GenerateNewTokens(user.UserID)
+        if err != nil </span><span class="cov0" title="0">{
+                logger.Error("Cannot generate token", zap.String("user_id", request.UserID), zap.Error(err))
+                return ErrorResponse(ctx, fiber.StatusInternalServerError, fmt.Sprintf("Failed to generate token for user: %s. %s", user.UserID, err.Error()))
+        }</span>
+
+        <span class="cov8" title="1">return ctx.JSON(fiber.Map{
+                "tokens": fiber.Map{
+                        "access":  token.Access,
+                        "refresh": token.Refresh,
+                },
+        })</span>
+}
+
+// RenewTokens method for renew access and refresh tokens.
+// @Description Renew access and refresh tokens.
+// @Summary renew access and refresh tokens
+// @Tags Token
+// @Accept json
+// @Produce json
+// @Param refresh_token body models.Renew true "Refresh token"
+// @Success 200 {string} status "ok"
+// @Security ApiKeyAuth
+// @Router /token/renew [post]
+func (c *AuthController) RenewTokens(ctx *fiber.Ctx) error <span class="cov8" title="1">{
+        // Get now time.
+        now := time.Now().Unix()
+
+        // Get claims from JWT.
+        claims, err := utils.ExtractTokenMetadata(ctx)
+        if err != nil </span><span class="cov8" title="1">{
+                // Return status 500 and JWT parse error.
+                return ErrorResponse(ctx, fiber.StatusInternalServerError, err.Error())
+        }</span>
+
+        // Set expiration time from JWT data of current user.
+        <span class="cov8" title="1">expiresAccessToken := claims.Expires
+
+        // Checking, if now time greather than Access token expiration time.
+        if now &gt; expiresAccessToken </span><span class="cov0" title="0">{
+                // Return status 401 and unauthorized error message.
+                return ErrorResponse(ctx, fiber.StatusUnauthorized, "unauthorized, check expiration time of your token")
+        }</span>
+
+        // Create a new renew refresh token struct.
+        <span class="cov8" title="1">renew := &amp;models.Renew{}
+
+        // Checking received data from JSON body.
+        if err := ctx.BodyParser(renew); err != nil </span><span class="cov0" title="0">{
+                // Return, if JSON data is not correct.
+                return ErrorResponse(ctx, fiber.StatusBadRequest, err.Error())
+        }</span>
+
+        // Set expiration time from Refresh token of current user.
+        <span class="cov8" title="1">expiresRefreshToken, err := utils.ParseRefreshToken(renew.RefreshToken)
+        if err != nil </span><span class="cov8" title="1">{
+                // Return status 400 and error message.
+                return ErrorResponse(ctx, fiber.StatusBadRequest, err.Error())
+        }</span>
+
+        // Checking, if now time greather than Refresh token expiration time.
+        <span class="cov8" title="1">if now &lt; expiresRefreshToken </span><span class="cov8" title="1">{
+                // Define user ID.
+                userID := claims.UserID
+
+                // Get user by ID.
+                _, err = c.UserService.GetUserByID(userID)
+                if err != nil </span><span class="cov8" title="1">{
+                        log.Printf("Failed to get user by ID: %s. %s", userID, err.Error())
+                        // Return, if user not found.
+                        return ErrorResponse(ctx, fiber.StatusNotFound, "user not found")
+                }</span>
+
+                // Generate JWT Access &amp; Refresh tokens.
+                <span class="cov8" title="1">tokens, err := utils.GenerateNewTokens(userID)
+                if err != nil </span><span class="cov0" title="0">{
+                        // Return status 500 and token generation error.
+                        return ErrorResponse(ctx, fiber.StatusInternalServerError, err.Error())
+                }</span>
+
+                // Return status 200 and new tokens.
+                <span class="cov8" title="1">return ctx.JSON(fiber.Map{
+                        "tokens": fiber.Map{
+                                "access":  tokens.Access,
+                                "refresh": tokens.Refresh,
+                        },
+                })</span>
+        }
+
+        // Return status 401 and unauthorized error message.
+        <span class="cov0" title="0">return ErrorResponse(ctx, fiber.StatusUnauthorized, "unauthorized, your refresh token is expired")</span>
+}
+</pre>
+		
+		<pre class="file" id="file2" style="display: none">package controllers
+
+import (
+        "backend-developer-assignment/app/services"
+
+        fiber "github.com/gofiber/fiber/v2"
+        "go.uber.org/zap"
+)
+
+// BannerController handles HTTP requests for banner operations
+type BannerController struct {
+        bannerService services.BannerService
+}
+
+// NewBannerController creates a new banner controller
+func NewBannerController(bannerService services.BannerService) *BannerController <span class="cov8" title="1">{
+        return &amp;BannerController{
+                bannerService: bannerService,
+        }
+}</span>
+
+// GetBannerByID handles the request to get a banner by ID
+//
+//        @Summary                Get banner by ID
+//        @Description        Get a banner by its ID
+//        @Tags                        Banners
+//        @Produce                json
+//        @Param                        id        path                string        true        "Banner ID"
+//        @Success                200        {object}        models.Banner
+//        @Router                        /banners/{id} [get]
+func (c *BannerController) GetBanner(ctx *fiber.Ctx) error <span class="cov8" title="1">{
+        bannerID := ctx.Params("id")
+        if bannerID == "" </span><span class="cov0" title="0">{
+                return ErrorResponse(ctx, fiber.StatusBadRequest, "Banner ID is required")
+        }</span>
+
+        <span class="cov8" title="1">banner, err := c.bannerService.GetBannerByID(bannerID)
+        if err != nil </span><span class="cov8" title="1">{
+                logger.Error("Failed to get banner", zap.String("banner_id", bannerID), zap.Error(err))
+                return ErrorResponse(ctx, fiber.StatusInternalServerError, "Failed to get banner")
+        }</span>
+
+        <span class="cov8" title="1">if banner == nil </span><span class="cov8" title="1">{
+                return ErrorResponse(ctx, fiber.StatusNotFound, "Banner not found")
+        }</span>
+
+        <span class="cov8" title="1">return ctx.Status(fiber.StatusOK).JSON(banner)</span>
+}
+
+// ListBanners returns all banners for the current user
+//
+//        @Summary                List banners
+//        @Description        List all banners for the current user
+//        @Tags                        Banners
+//        @Produce                json
+//        @Success                200        {object}        []models.Banner
+//        @Router                        /banners [get]
+func (c *BannerController) ListBanners(ctx *fiber.Ctx) error <span class="cov8" title="1">{
+        userID := ctx.Locals("userID").(string)
+
+        // Get banners from service
+        banners, err := c.bannerService.GetBannersByUserID(userID)
+        if err != nil </span><span class="cov8" title="1">{
+                return ErrorResponse(ctx, fiber.StatusInternalServerError, err.Error())
+        }</span>
+
+        <span class="cov8" title="1">return ctx.Status(fiber.StatusOK).JSON(banners)</span>
+}
+</pre>
+		
+		<pre class="file" id="file3" style="display: none">package controllers
+
+import (
+        "backend-developer-assignment/app/services"
+        "backend-developer-assignment/pkg/middleware"
+        "strconv"
+
+        fiber "github.com/gofiber/fiber/v2"
+)
+
+type Controller struct {
+        AuthController        AuthController
+        UserController        UserController
+        TransactionController TransactionController
+        DebitCardController   DebitCardController
+        AccountController     AccountController
+        BannerController      BannerController
+}
+
+var logger = middleware.GetLogger()
+
+func InitController(service *services.Service) *Controller <span class="cov0" title="0">{
+        return &amp;Controller{
+                AuthController:        *NewAuthController(service.UserService),
+                UserController:        *NewUserController(service.UserService),
+                TransactionController: *NewTransactionController(service.TransactionService),
+                DebitCardController:   *NewDebitCardController(service.DebitCardService),
+                AccountController:     *NewAccountController(service.AccountService),
+                BannerController:      *NewBannerController(service.BannerService),
+        }
+}</span>
+
+func ErrorResponse(ctx *fiber.Ctx, statusCode int, message string) error <span class="cov8" title="1">{
+        return ctx.Status(statusCode).JSON(fiber.Map{
+                "code":    strconv.Itoa(statusCode),
+                "message": message,
+        })
+}</span>
+</pre>
+		
+		<pre class="file" id="file4" style="display: none">package controllers
+
+import (
+        "backend-developer-assignment/app/models"
+        "backend-developer-assignment/app/services"
+        "backend-developer-assignment/pkg/configs"
+        "backend-developer-assignment/pkg/utils"
+
+        fiber "github.com/gofiber/fiber/v2"
+        "go.uber.org/zap"
+)
+
+// DebitCardController handles HTTP requests related to debit cards
+type DebitCardController struct {
+        debitCardService services.DebitCardService
+}
+
+// NewDebitCardController creates a new instance of DebitCardController
+func NewDebitCardController(service services.DebitCardService) *DebitCardController <span class="cov8" title="1">{
+        return &amp;DebitCardController{
+                debitCardService: service,
+        }
+}</span>
+
+// ListDebitCards returns all debit cards for a user
+//
+//        @Summary                List debit cards
+//        @Description        List all debit cards for a user
+//        @Tags                        Debit Cards
+//        @Produce                json
+//        @Success                200        {object}        []models.DebitCardWithDetails
+//        @Router                        /debit_cards [get]
+func (c *DebitCardController) ListDebitCards(ctx *fiber.Ctx) error <span class="cov8" title="1">{
+        userID := ctx.Locals("userID").(string)
+
+        // Get cards from service
+        cards, err := c.debitCardService.GetCardWithDetailByUserID(userID)
+        if err != nil </span><span class="cov8" title="1">{
+                return ErrorResponse(ctx, fiber.StatusInternalServerError, err.Error())
+        }</span>
+
+        <span class="cov8" title="1">return ctx.Status(fiber.StatusOK).JSON(cards)</span>
+}
+
+// GetDebitCard returns a specific debit card by ID
+//
+//        @Summary                Get debit card
+//        @Description        Get a specific debit card by ID
+//        @Tags                        Debit Cards
+//        @Produce                json
+//        @Param                        id        path                string        true        "Card ID"
+//        @Success                200        {object}        models.DebitCardWithDetails
+//        @Router                        /debit_cards/{id} [get]
+func (c *DebitCardController) GetDebitCard(ctx *fiber.Ctx) error <span class="cov8" title="1">{
+        // Get card_id from path parameters
+        cardID := ctx.Params("id")
+        if cardID == "" </span><span class="cov0" title="0">{
+                return ErrorResponse(ctx, fiber.StatusBadRequest, "card_id is required")
+        }</span>
+
+        // Get card from service
+        <span class="cov8" title="1">card, err := c.debitCardService.GetCardWithDetailByID(cardID)
+        if err != nil </span><span class="cov8" title="1">{
+                return ErrorResponse(ctx, fiber.StatusNotFound, "Debit card not found")
+        }</span>
+
+        <span class="cov8" title="1">return ctx.Status(fiber.StatusOK).JSON(card)</span>
+}
+
+// CreateDebitCard creates a new debit card with all its details
+//
+//        @Summary                Create debit card
+//        @Description        Create a new debit card with all its details
+//        @Tags                        Debit Cards
+//        @Produce                json
+//        @Param                        request        body                controllers.CreateDebitCard.createDebitCardRequest        true        "Card details"
+//        @Success                201                {object}        models.DebitCardWithDetails
+//        @Router                        /debit_cards [post]
+func (c *DebitCardController) CreateDebitCard(ctx *fiber.Ctx) error <span class="cov8" title="1">{
+        type createDebitCardRequest struct {
+                Name        string `json:"name" validate:"required,alphanumspace"`
+                Issuer      string `json:"issuer" validate:"required,alphanumspace"`
+                Color       string `json:"color" validate:"omitempty,iscolor"`
+                BorderColor string `json:"border_color" validate:"omitempty,iscolor"`
+        }
+        // Parse request body
+        var request createDebitCardRequest
+
+        if err := ctx.BodyParser(&amp;request); err != nil </span><span class="cov0" title="0">{
+                return ErrorResponse(ctx, fiber.StatusBadRequest, "Invalid request body")
+        }</span>
+
+        <span class="cov8" title="1">validate := utils.NewValidator()
+        if err := validate.Struct(request); err != nil </span><span class="cov8" title="1">{
+                logger.Info("Validation error", zap.Error(err))
+                return ErrorResponse(ctx, fiber.StatusBadRequest, utils.ValidatorErrors(err))
+        }</span>
+
+        <span class="cov8" title="1">if request.Color == "" </span><span class="cov0" title="0">{
+                // set default color
+                request.Color = configs.DEFAULT_DEBIT_CARD_COLOR
+        }</span>
+        <span class="cov8" title="1">if request.BorderColor == "" </span><span class="cov0" title="0">{
+                // set default border color
+                request.BorderColor = configs.DEFAULT_DEBIT_CARD_BORDER_COLOR
+        }</span>
+
+        <span class="cov8" title="1">userID := ctx.Locals("userID").(string)
+
+        // Create the main card
+        card := &amp;models.DebitCardWithDetails{
+                UserID:      userID,
+                Name:        request.Name,
+                Issuer:      request.Issuer,
+                Color:       request.Color,
+                BorderColor: request.BorderColor,
+        }
+
+        // Create the card with all its details
+        err := c.debitCardService.CreateCardWithDetails(card)
+        if err != nil </span><span class="cov8" title="1">{
+                logger.Error("Failed to create card", zap.Error(err))
+                return ErrorResponse(ctx, fiber.StatusInternalServerError, err.Error())
+        }</span>
+
+        // Retrieve the created card with all its details
+        <span class="cov8" title="1">createdCard, err := c.debitCardService.GetCardWithDetailByID(card.CardID)
+        if err != nil </span><span class="cov0" title="0">{
+                logger.Error("Failed to retrieve card details after create", zap.Error(err))
+                return ErrorResponse(ctx, fiber.StatusInternalServerError, "Card created but failed to retrieve details")
+        }</span>
+
+        <span class="cov8" title="1">return ctx.Status(fiber.StatusCreated).JSON(createdCard)</span>
+}
+
+// UpdateDebitCard updates an existing debit card
+//
+//        @Summary                Update debit card
+//        @Description        Update an existing debit card
+//        @Tags                        Debit Cards
+//        @Produce                json
+//        @Param                        id                path                string                                        true        "Card ID"
+//        @Param                        request        body                controllers.UpdateDebitCard.updateDebitCardRequest        true        "Card details"
+//        @Success                200                {object}        models.DebitCardWithDetails
+//        @Router                        /debit_cards/{id} [put]
+func (c *DebitCardController) UpdateDebitCard(ctx *fiber.Ctx) error <span class="cov8" title="1">{
+        type updateDebitCardRequest struct {
+                Name        string `json:"name" validate:"omitempty,alphanumspace"`
+                Color       string `json:"color" validate:"iscolor"`
+                BorderColor string `json:"border_color" validate:"iscolor"`
+        }
+        // Parse request body
+        var request updateDebitCardRequest
+
+        // Get card_id from path parameters
+        cardID := ctx.Params("id")
+        if cardID == "" </span><span class="cov0" title="0">{
+                return ErrorResponse(ctx, fiber.StatusBadRequest, "card_id is required")
+        }</span>
+
+        // Check if the card exists
+        <span class="cov8" title="1">existingCard, err := c.debitCardService.GetCardByID(cardID)
+        if err != nil </span><span class="cov8" title="1">{
+                return ErrorResponse(ctx, fiber.StatusNotFound, "Debit card not found")
+        }</span>
+
+        <span class="cov8" title="1">if err := ctx.BodyParser(&amp;request); err != nil </span><span class="cov0" title="0">{
+                return ErrorResponse(ctx, fiber.StatusBadRequest, "Invalid request body")
+        }</span>
+
+        <span class="cov8" title="1">validate := utils.NewValidator()
+        if err := validate.Struct(request); err != nil </span><span class="cov0" title="0">{
+                logger.Info("Validation error", zap.Error(err))
+                return ErrorResponse(ctx, fiber.StatusBadRequest, utils.ValidatorErrors(err))
+        }</span>
+
+        <span class="cov8" title="1">if err := c.debitCardService.UpdateCard(existingCard, request.Name, request.Color, request.BorderColor); err != nil </span><span class="cov8" title="1">{
+                logger.Error("Failed to update card", zap.String("card_id", cardID), zap.Error(err))
+                return ErrorResponse(ctx, fiber.StatusInternalServerError, "Failed to update card: "+err.Error())
+        }</span>
+
+        // Retrieve the updated card with all its details
+        <span class="cov8" title="1">updatedCard, err := c.debitCardService.GetCardWithDetailByID(cardID)
+        if err != nil </span><span class="cov0" title="0">{
+                logger.Error("Card updated but failed to retrieve details", zap.String("card_id", cardID), zap.Error(err))
+                return ErrorResponse(ctx, fiber.StatusInternalServerError, "Card updated but failed to retrieve details")
+        }</span>
+
+        <span class="cov8" title="1">return ctx.Status(fiber.StatusOK).JSON(updatedCard)</span>
+}
+
+// DeleteDebitCard deletes a debit card
+//
+//        @Summary                Delete debit card
+//        @Description        Delete a debit card
+//        @Tags                        Debit Cards
+//        @Produce                json
+//        @Param                        id        path                string        true        "Card ID"
+//        @Success                204        {string}        string        "Card deleted"
+//        @Router                        /debit_cards/{id} [delete]
+func (c *DebitCardController) DeleteDebitCard(ctx *fiber.Ctx) error <span class="cov8" title="1">{
+        // Get card_id from path parameters
+        cardID := ctx.Params("id")
+        if cardID == "" </span><span class="cov0" title="0">{
+                return ErrorResponse(ctx, fiber.StatusBadRequest, "card_id is required")
+        }</span>
+
+        // Check if the card exists
+        <span class="cov8" title="1">_, err := c.debitCardService.GetCardByID(cardID)
+        if err != nil </span><span class="cov8" title="1">{
+                return ErrorResponse(ctx, fiber.StatusNotFound, "Debit card not found")
+        }</span>
+
+        // Delete the card (soft delete)
+        <span class="cov8" title="1">if err := c.debitCardService.DeleteCard(cardID); err != nil </span><span class="cov8" title="1">{
+                return ErrorResponse(ctx, fiber.StatusInternalServerError, "Failed to delete card: "+err.Error())
+        }</span>
+
+        <span class="cov8" title="1">return ctx.Status(fiber.StatusNoContent).Send(nil)</span>
+}
+</pre>
+		
+		<pre class="file" id="file5" style="display: none">package controllers
+
+import (
+        "backend-developer-assignment/app/models"
+        "backend-developer-assignment/app/services"
+        "strconv"
+
+        fiber "github.com/gofiber/fiber/v2"
+        "go.uber.org/zap"
+)
+
+// TransactionController holds the services related to transactions.
+type TransactionController struct {
+        TransactionService services.TransactionService
+}
+
+// NewTransactionController creates a new TransactionController.
+func NewTransactionController(transactionService services.TransactionService) *TransactionController <span class="cov8" title="1">{
+        return &amp;TransactionController{
+                TransactionService: transactionService,
+        }
+}</span>
+
+// ListTransactions retrieves all transactions for a user.
+// @Description Retrieves all transactions for a user.
+// @Summary List transactions
+// @Tags Transactions
+// @Accept json
+// @Produce json
+// @Param page query int false "Page number"
+// @Success 200 {object} object{transactions=[]models.Transaction,total=int} "List of transactions"
+// @Failure 400 {object} base.ErrorResponse "Invalid input format"
+// @Failure 401 {object} base.ErrorResponse "Unauthorized"
+// @Failure 500 {object} base.ErrorResponse "Failed to retrieve transactions"
+// @Router /transactions [get]
+func (c *TransactionController) ListTransactions(ctx *fiber.Ctx) error <span class="cov8" title="1">{
+        type listTransactionResponse struct {
+                Transactions []*models.Transaction `json:"transactions"`
+                Total        int                   `json:"total"`
+        }
+        pageQuery := ctx.Query("page", "1")
+        page, err := strconv.Atoi(pageQuery)
+        if err != nil </span><span class="cov8" title="1">{
+                logger.Warn("Cannot parse page query to int, default to 1", zap.String("page", pageQuery), zap.Error(err))
+                page = 1
+        }</span>
+
+        <span class="cov8" title="1">userID := ctx.Locals("userID").(string)
+
+        transactions, total, err := c.TransactionService.GetTransactionsByUserID(userID, page)
+        if err != nil </span><span class="cov8" title="1">{
+                logger.Error("Failed to get transactions", zap.String("user_id", userID), zap.Error(err))
+                return ErrorResponse(ctx, fiber.StatusInternalServerError, "Failed to retrieve transactions")
+        }</span>
+
+        <span class="cov8" title="1">return ctx.JSON(listTransactionResponse{
+                Transactions: transactions,
+                Total:        total,
+        })</span>
+}
+</pre>
+		
+		<pre class="file" id="file6" style="display: none">package controllers
+
+import (
+        "backend-developer-assignment/app/models"
+        "backend-developer-assignment/app/services"
+
+        fiber "github.com/gofiber/fiber/v2"
+        "go.uber.org/zap"
+)
+
+// UserController holds the services related to users.
+type UserController struct {
+        UserService services.UserService
+}
+
+// NewUserController creates a new UserController.
+func NewUserController(userService services.UserService) *UserController <span class="cov8" title="1">{
+        return &amp;UserController{
+                UserService: userService,
+        }
+}</span>
+
+// GetUserGreeting get user's greeting message
+// @Summary Get user's greeting message
+// @Description Retrieves the greeting message for the authenticated user
+// @Tags User
+// @Accept json
+// @Produce json
+// @Security ApiKeyAuth
+// @Success 200 {object} controllers.GetUserGreeting.getUserGreetingResponse "Returns the greeting message"
+// @Failure 401 {object} base.ErrorResponse "Unauthorized - Invalid or missing token"
+// @Failure 404 {object} base.ErrorResponse "User greeting not found"
+// @Router /user/greeting [get]
+func (c *UserController) GetUserGreeting(ctx *fiber.Ctx) error <span class="cov8" title="1">{
+        type getUserGreetingResponse struct {
+                Message string `json:"message"`
+        }
+
+        userID := ctx.Locals("userID").(string)
+
+        logger.Info("Get user greeting", zap.String("user_id", userID))
+
+        var greeting *models.UserGreeting
+
+        greeting, err := c.UserService.GetUserGreetingByID(userID)
+        if err != nil </span><span class="cov8" title="1">{
+                logger.Info("Failed to get user greeting", zap.String("user_id", userID), zap.Error(err))
+                return ErrorResponse(ctx, fiber.StatusNotFound, "User greeting not found")
+        }</span>
+
+        <span class="cov8" title="1">return ctx.JSON(getUserGreetingResponse{
+                Message: greeting.Greeting,
+        })</span>
+}
+
+// UpdateUserGreeting update user's greeting message
+// @Summary Update user's greeting message
+// @Description Update the greeting message of the authenticated user
+// @Tags User
+// @Accept json
+// @Produce json
+// @Security ApiKeyAuth
+// @Param request body controllers.UpdateUserGreeting.updateUserGreetingRequest true "Request body"
+// @Success 200 {object} controllers.UpdateUserGreeting.updateUserGreetingResponse "Returns the updated greeting message"
+// @Failure 400 {object} base.ErrorResponse "Bad request - Invalid input format"
+// @Failure 401 {object} base.ErrorResponse "Unauthorized - Invalid or missing token"
+// @Failure 404 {object} base.ErrorResponse "User not found"
+// @Failure 500 {object} base.ErrorResponse "Internal server error"
+// @Router /user/greeting [put]
+func (c *UserController) UpdateUserGreeting(ctx *fiber.Ctx) error <span class="cov8" title="1">{
+        type updateUserGreetingRequest struct {
+                Message string `json:"message"`
+        }
+        type updateUserGreetingResponse struct {
+                Message string `json:"message"`
+        }
+
+        userID := ctx.Locals("userID").(string)
+
+        logger.Info("Update user greeting", zap.String("user_id", userID))
+
+        var request updateUserGreetingRequest
+        if err := ctx.BodyParser(&amp;request); err != nil </span><span class="cov8" title="1">{
+                logger.Info("Failed to parse request body", zap.Error(err))
+                return ErrorResponse(ctx, fiber.StatusBadRequest, "Invalid input format: "+err.Error())
+        }</span>
+
+        <span class="cov8" title="1">var greeting models.UserGreeting
+        greeting.UserID = userID
+        greeting.Greeting = request.Message
+
+        err := c.UserService.UpdateUserGreeting(&amp;greeting)
+        if err != nil </span><span class="cov8" title="1">{
+                logger.Error("Failed to update user greeting", zap.Error(err))
+                return ErrorResponse(ctx, fiber.StatusNotFound, "Fail to update user greeting")
+        }</span>
+
+        <span class="cov8" title="1">return ctx.JSON(updateUserGreetingResponse{
+                Message: greeting.Greeting,
+        })</span>
+}
+
+// GetUser get user's information
+// @Summary Get user's information
+// @Description Retrieves the information of the authenticated user
+// @Tags User
+// @Accept json
+// @Produce json
+// @Security ApiKeyAuth
+// @Success 200 {object} models.User "Returns the user information"
+// @Failure 401 {object} base.ErrorResponse "Unauthorized - Invalid or missing token"
+// @Failure 404 {object} base.ErrorResponse "User not found"
+// @Router /user [get]
+func (c *UserController) GetUser(ctx *fiber.Ctx) error <span class="cov8" title="1">{
+        var user *models.User
+
+        userID := ctx.Locals("userID").(string)
+
+        user, err := c.UserService.GetUserByID(userID)
+        if err != nil </span><span class="cov8" title="1">{
+                return ErrorResponse(ctx, fiber.StatusNotFound, "User not found")
+        }</span>
+
+        <span class="cov8" title="1">return ctx.JSON(user)</span>
+}
+
+func (c *UserController) UpdateUser(ctx *fiber.Ctx) error <span class="cov8" title="1">{
+        type updateUserRequest struct {
+                Name string `json:"name"`
+        }
+
+        userID := ctx.Locals("userID").(string)
+
+        var request updateUserRequest
+        if err := ctx.BodyParser(&amp;request); err != nil </span><span class="cov8" title="1">{
+                logger.Info("Failed to parse request body", zap.Error(err))
+                return ErrorResponse(ctx, fiber.StatusBadRequest, "Invalid input format: "+err.Error())
+        }</span>
+
+        <span class="cov8" title="1">logger.Info("Update user", zap.String("user_id", userID), zap.String("name", request.Name))
+
+        var user models.User
+        user.UserID = userID
+        user.Name = request.Name
+
+        err := c.UserService.UpdateUser(&amp;user)
+        if err != nil </span><span class="cov8" title="1">{
+                return ErrorResponse(ctx, fiber.StatusNotFound, "User not found")
+        }</span>
+
+        <span class="cov8" title="1">return ctx.JSON(user)</span>
+}
+</pre>
+		
+		<pre class="file" id="file7" style="display: none">package services
+
+import (
+        "backend-developer-assignment/app/models"
+        "backend-developer-assignment/app/repositories"
+        "backend-developer-assignment/pkg/types"
+        "errors"
+
+        "github.com/google/uuid"
+        "go.uber.org/zap"
+)
+
+// Custom errors for account operations
+var (
+        ErrInsufficientFunds = errors.New("insufficient funds")
+)
+
+// AccountService defines the interface for account operations
+type AccountService interface {
+        // Account operations
+        GetAccountByID(accountID string) (*models.Account, error)
+        GetAccountsByUserID(userID string) ([]*models.Account, error)
+        GetAccountWithDetailByID(accountID string) (*models.AccountWithDetails, error)
+        GetAccountsWithDetailByUserID(userID string) ([]*models.AccountWithDetails, error)
+
+        // Create operations
+        CreateAccountWithDetails(accountWithDetails *models.AccountWithDetails) error
+
+        // Update operations
+        UpdateAccount(account *models.AccountWithDetails) error
+        SetMainAccount(account *models.Account) error
+
+        // Transaction operations
+        WithdrawFromAccount(accountID string, amount float64) (float64, error)
+        TransferBetweenAccounts(fromAccountID, toAccountID string, amount float64) (*types.TransferResult, error)
+        DepositToAccount(accountID string, amount float64) (float64, error)
+
+        // Delete operations
+        DeleteAccount(accountID string) error
+}
+
+// AccountServiceImpl implements AccountService
+type AccountServiceImpl struct {
+        accountRepository     repositories.AccountRepository
+        transactionRepository repositories.TransactionRepository
+        txProvider            repositories.TxProvider
+}
+
+// NewAccountService creates a new instance of AccountService
+func NewAccountService(accountRepo repositories.AccountRepository, transactionRepo repositories.TransactionRepository, txProvider repositories.TxProvider) AccountService <span class="cov8" title="1">{
+        return &amp;AccountServiceImpl{
+                accountRepository:     accountRepo,
+                transactionRepository: transactionRepo,
+                txProvider:            txProvider,
+        }
+}</span>
+
+// GetAccountByID retrieves an account by ID
+func (s *AccountServiceImpl) GetAccountByID(accountID string) (*models.Account, error) <span class="cov8" title="1">{
+        return s.accountRepository.GetAccountByID(accountID)
+}</span>
+
+// GetAccountsByUserID retrieves all accounts for a user
+func (s *AccountServiceImpl) GetAccountsByUserID(userID string) ([]*models.Account, error) <span class="cov8" title="1">{
+        return s.accountRepository.GetAccountsByUserID(userID)
+}</span>
+
+// GetAccountWithDetailByID retrieves a complete account with all related information by ID
+func (s *AccountServiceImpl) GetAccountWithDetailByID(accountID string) (*models.AccountWithDetails, error) <span class="cov8" title="1">{
+        return s.accountRepository.GetAccountWithDetailByID(accountID)
+}</span>
+
+// GetAccountsWithDetailByUserID retrieves all complete accounts with related information for a user
+func (s *AccountServiceImpl) GetAccountsWithDetailByUserID(userID string) ([]*models.AccountWithDetails, error) <span class="cov8" title="1">{
+        return s.accountRepository.GetAccountsWithDetailByUserID(userID)
+}</span>
+
+// CreateAccountWithDetails creates a new account with all related details
+func (s *AccountServiceImpl) CreateAccountWithDetails(accountWithDetails *models.AccountWithDetails) error <span class="cov0" title="0">{
+        // Generate a new UUID if not provided
+        if accountWithDetails.AccountID == "" </span><span class="cov0" title="0">{
+                accountWithDetails.AccountID = uuid.New().String()
+        }</span>
+
+        <span class="cov0" title="0">if err := s.accountRepository.CreateAccount(accountWithDetails); err != nil </span><span class="cov0" title="0">{
+                return err
+        }</span>
+
+        <span class="cov0" title="0">return nil</span>
+}
+
+// UpdateAccount updates an existing account
+func (s *AccountServiceImpl) UpdateAccount(account *models.AccountWithDetails) error <span class="cov0" title="0">{
+        return s.accountRepository.UpdateAccountByID(account.AccountID, account.UserID, func(accountWithDetails *models.AccountWithDetails) (bool, error) </span><span class="cov0" title="0">{
+                isUpdate := false
+
+                // Update account fields
+                if account.Type != "" &amp;&amp; accountWithDetails.Type != account.Type </span><span class="cov0" title="0">{
+                        accountWithDetails.Type = account.Type
+                        isUpdate = true
+                }</span>
+                <span class="cov0" title="0">if account.Currency != "" &amp;&amp; accountWithDetails.Currency != account.Currency </span><span class="cov0" title="0">{
+                        accountWithDetails.Currency = account.Currency
+                        isUpdate = true
+                }</span>
+                <span class="cov0" title="0">if account.AccountNumber != "" &amp;&amp; accountWithDetails.AccountNumber != account.AccountNumber </span><span class="cov0" title="0">{
+                        accountWithDetails.AccountNumber = account.AccountNumber
+                        isUpdate = true
+                }</span>
+                <span class="cov0" title="0">if account.Issuer != "" &amp;&amp; accountWithDetails.Issuer != account.Issuer </span><span class="cov0" title="0">{
+                        accountWithDetails.Issuer = account.Issuer
+                        isUpdate = true
+                }</span>
+
+                // Update account detail fields
+                <span class="cov0" title="0">if account.Color != "" &amp;&amp; accountWithDetails.Color != account.Color </span><span class="cov0" title="0">{
+                        accountWithDetails.Color = account.Color
+                        isUpdate = true
+                }</span>
+                <span class="cov0" title="0">if account.Progress &gt; 0 &amp;&amp; accountWithDetails.Progress != account.Progress </span><span class="cov0" title="0">{
+                        accountWithDetails.Progress = account.Progress
+                        isUpdate = true
+                }</span>
+
+                <span class="cov0" title="0">return isUpdate, nil</span>
+        })
+}
+
+// UpdateAccount updates an existing account
+func (s *AccountServiceImpl) SetMainAccount(account *models.Account) error <span class="cov0" title="0">{
+        if err := s.accountRepository.UnSetMainAccount(account.UserID); err != nil </span><span class="cov0" title="0">{
+                logger.Error("Unable to unset main account", zap.String("account_id", account.AccountID), zap.String("user_id", account.UserID), zap.Error(err))
+                return err
+        }</span>
+
+        <span class="cov0" title="0">if err := s.accountRepository.SetMainAccount(account.AccountID, account.UserID); err != nil </span><span class="cov0" title="0">{
+                logger.Error("Unable to set main account", zap.String("account_id", account.AccountID), zap.String("user_id", account.UserID), zap.Error(err))
+                return err
+        }</span>
+
+        <span class="cov0" title="0">return nil</span>
+}
+
+// WithdrawFromAccount withdraws money from an account with proper locking to prevent race conditions
+func (s *AccountServiceImpl) WithdrawFromAccount(accountID string, amount float64) (float64, error) <span class="cov8" title="1">{
+        var updatedBalance float64
+
+        // Get account details for transaction record
+        account, err := s.GetAccountWithDetailByID(accountID)
+        if err != nil </span><span class="cov0" title="0">{
+                logger.Error("Failed to get account details", zap.String("account_id", accountID), zap.Error(err))
+                return 0, err
+        }</span>
+
+        // Use transaction provider to handle the transaction
+        <span class="cov8" title="1">err = s.txProvider.Transact(func(adapters repositories.Adapters) error </span><span class="cov8" title="1">{
+                // Update account balance within transaction
+                balanceErr := adapters.AccountRepository.UpdateAccountBalance(accountID, func(currentBalance float64) (float64, error) </span><span class="cov8" title="1">{
+                        // Check if there are sufficient funds
+                        if currentBalance &lt; amount </span><span class="cov8" title="1">{
+                                return 0, ErrInsufficientFunds
+                        }</span>
+
+                        // Calculate the new balance
+                        <span class="cov8" title="1">updatedBalance = currentBalance - amount
+                        return updatedBalance, nil</span>
+                })
+
+                <span class="cov8" title="1">if balanceErr != nil </span><span class="cov8" title="1">{
+                        return balanceErr
+                }</span>
+
+                // Create withdrawal transaction record
+                <span class="cov8" title="1">withdrawalTx := &amp;models.Transaction{
+                        BaseModel:       &amp;models.BaseModel{},
+                        TransactionID:   uuid.New().String(),
+                        UserID:          account.UserID,
+                        Name:            "Withdrawal",
+                        IsBank:          true,
+                        Amount:          amount,
+                        TransactionType: string(models.Withdrawal),
+                        AccountID:       accountID,
+                }
+
+                // Save the transaction record
+                if err := adapters.TransactionRepository.Create(withdrawalTx); err != nil </span><span class="cov8" title="1">{
+                        logger.Error("Failed to create withdrawal transaction record",
+                                zap.String("account_id", accountID),
+                                zap.Error(err))
+                        return err
+                }</span>
+
+                <span class="cov8" title="1">return nil</span>
+        })
+
+        <span class="cov8" title="1">if err != nil </span><span class="cov8" title="1">{
+                return 0, err
+        }</span>
+
+        <span class="cov8" title="1">return updatedBalance, nil</span>
+}
+
+// DepositToAccount deposits money to an account with proper locking to prevent race conditions
+func (s *AccountServiceImpl) DepositToAccount(accountID string, amount float64) (float64, error) <span class="cov8" title="1">{
+        var updatedBalance float64
+
+        // Get account details for transaction record
+        account, err := s.GetAccountWithDetailByID(accountID)
+        if err != nil </span><span class="cov0" title="0">{
+                logger.Error("Failed to get account details", zap.String("account_id", accountID), zap.Error(err))
+                return 0, err
+        }</span>
+
+        // Use transaction provider to handle the transaction
+        <span class="cov8" title="1">err = s.txProvider.Transact(func(adapters repositories.Adapters) error </span><span class="cov8" title="1">{
+                // Update account balance within transaction
+                balanceErr := adapters.AccountRepository.UpdateAccountBalance(accountID, func(currentBalance float64) (float64, error) </span><span class="cov8" title="1">{
+                        // Calculate the new balance
+                        updatedBalance = currentBalance + amount
+                        return updatedBalance, nil
+                }</span>)
+
+                <span class="cov8" title="1">if balanceErr != nil </span><span class="cov0" title="0">{
+                        return balanceErr
+                }</span>
+
+                // Create deposit transaction record
+                <span class="cov8" title="1">depositTx := &amp;models.Transaction{
+                        BaseModel:       &amp;models.BaseModel{},
+                        TransactionID:   uuid.New().String(),
+                        UserID:          account.UserID,
+                        Name:            "Deposit",
+                        IsBank:          true,
+                        Amount:          amount,
+                        TransactionType: string(models.Deposit),
+                        AccountID:       accountID,
+                }
+
+                // Save the transaction record
+                if err := adapters.TransactionRepository.Create(depositTx); err != nil </span><span class="cov8" title="1">{
+                        logger.Error("Failed to create deposit transaction record",
+                                zap.String("account_id", accountID),
+                                zap.Error(err))
+                        return err
+                }</span>
+
+                <span class="cov8" title="1">return nil</span>
+        })
+
+        <span class="cov8" title="1">if err != nil </span><span class="cov8" title="1">{
+                return 0, err
+        }</span>
+
+        <span class="cov8" title="1">return updatedBalance, nil</span>
+}
+
+// TransferBetweenAccounts transfers money between accounts with proper locking to prevent race conditions
+func (s *AccountServiceImpl) TransferBetweenAccounts(fromAccountID, toAccountID string, amount float64) (*types.TransferResult, error) <span class="cov8" title="1">{
+        // Use a transaction with row locking to prevent race conditions
+        result := &amp;types.TransferResult{}
+
+        // Get source and destination account details for transaction records
+        sourceAccount, err := s.GetAccountWithDetailByID(fromAccountID)
+        if err != nil </span><span class="cov0" title="0">{
+                logger.Error("Failed to get source account details", zap.String("account_id", fromAccountID), zap.Error(err))
+                return nil, err
+        }</span>
+
+        <span class="cov8" title="1">destAccount, err := s.GetAccountWithDetailByID(toAccountID)
+        if err != nil </span><span class="cov0" title="0">{
+                logger.Error("Failed to get destination account details", zap.String("account_id", toAccountID), zap.Error(err))
+                return nil, err
+        }</span>
+
+        // Begin a database transaction that encompasses both the fund transfer and transaction record creation
+        <span class="cov8" title="1">err = s.txProvider.Transact(func(adapters repositories.Adapters) error </span><span class="cov8" title="1">{
+                // Transfer funds within the transaction
+                transferErr := adapters.AccountRepository.TransferFunds(fromAccountID, toAccountID, amount, func(sourceBalance, destBalance float64) (*types.TransferResult, error) </span><span class="cov8" title="1">{
+                        // Check if source account has sufficient funds
+                        if sourceBalance &lt; amount </span><span class="cov8" title="1">{
+                                return nil, ErrInsufficientFunds
+                        }</span>
+
+                        // Calculate the new balances
+                        <span class="cov8" title="1">result.SourceBalance = sourceBalance - amount
+                        result.DestinationBalance = destBalance + amount
+
+                        return result, nil</span>
+                })
+
+                <span class="cov8" title="1">if transferErr != nil </span><span class="cov8" title="1">{
+                        // If transfer fails, the transaction will be rolled back
+                        return transferErr
+                }</span>
+
+                // Create withdrawal transaction record for source account
+                <span class="cov8" title="1">withdrawalTx := &amp;models.Transaction{
+                        BaseModel:       &amp;models.BaseModel{},
+                        TransactionID:   uuid.New().String(),
+                        UserID:          sourceAccount.UserID,
+                        Name:            "Transfer to " + destAccount.AccountNumber,
+                        IsBank:          true,
+                        Amount:          amount,
+                        TransactionType: string(models.Transfer),
+                        AccountID:       fromAccountID,
+                }
+
+                // Create deposit transaction record for destination account
+                depositTx := &amp;models.Transaction{
+                        BaseModel:       &amp;models.BaseModel{},
+                        TransactionID:   uuid.New().String(),
+                        UserID:          destAccount.UserID,
+                        Name:            "Transfer from " + sourceAccount.AccountNumber,
+                        IsBank:          true,
+                        Amount:          amount,
+                        TransactionType: string(models.Transfer),
+                        AccountID:       toAccountID,
+                }
+
+                // Save the transaction records within the same database transaction
+                if err := adapters.TransactionRepository.Create(withdrawalTx); err != nil </span><span class="cov8" title="1">{
+                        logger.Error("Failed to create withdrawal transaction record",
+                                zap.String("from_account", fromAccountID),
+                                zap.String("to_account", toAccountID),
+                                zap.Error(err))
+                        // Return error to trigger rollback
+                        return err
+                }</span>
+
+                <span class="cov8" title="1">if err := adapters.TransactionRepository.Create(depositTx); err != nil </span><span class="cov0" title="0">{
+                        logger.Error("Failed to create deposit transaction record",
+                                zap.String("from_account", fromAccountID),
+                                zap.String("to_account", toAccountID),
+                                zap.Error(err))
+                        // Return error to trigger rollback
+                        return err
+                }</span>
+
+                <span class="cov8" title="1">return nil</span>
+        })
+
+        <span class="cov8" title="1">if err != nil </span><span class="cov8" title="1">{
+                // If any part of the transaction failed, return the error
+                return nil, err
+        }</span>
+
+        <span class="cov8" title="1">return result, nil</span>
+}
+
+// DeleteAccount marks an account as deleted without removing it
+func (s *AccountServiceImpl) DeleteAccount(accountID string) error <span class="cov0" title="0">{
+        return s.accountRepository.DeleteAccount(accountID)
+}</span>
+</pre>
+		
+		<pre class="file" id="file8" style="display: none">package services
+
+import (
+        "backend-developer-assignment/app/models"
+        "backend-developer-assignment/app/repositories"
+
+        "go.uber.org/zap"
+)
+
+// BannerService defines the interface for banner operations
+type BannerService interface {
+        GetBannerByID(bannerID string) (*models.Banner, error)
+        GetBannersByUserID(userID string) ([]*models.Banner, error)
+}
+
+// BannerServiceImpl implements BannerService
+type BannerServiceImpl struct {
+        bannerRepository repositories.BannerRepository
+}
+
+// NewBannerService creates a new banner service
+func NewBannerService(bannerRepository repositories.BannerRepository) BannerService <span class="cov8" title="1">{
+        return &amp;BannerServiceImpl{
+                bannerRepository: bannerRepository,
+        }
+}</span>
+
+// GetBannerByID retrieves a banner by its ID
+func (s *BannerServiceImpl) GetBannerByID(bannerID string) (*models.Banner, error) <span class="cov8" title="1">{
+        banner, err := s.bannerRepository.GetBannerByID(bannerID)
+        if err != nil </span><span class="cov8" title="1">{
+                logger.Error("Failed to get banner by ID", zap.String("banner_id", bannerID), zap.Error(err))
+                return nil, err
+        }</span>
+        
+        <span class="cov8" title="1">if banner == nil </span><span class="cov8" title="1">{
+                logger.Info("Banner not found", zap.String("banner_id", bannerID))
+                return nil, nil
+        }</span>
+        
+        <span class="cov8" title="1">return banner, nil</span>
+}
+
+// GetBannersByUserID retrieves all banners for a specific user
+func (s *BannerServiceImpl) GetBannersByUserID(userID string) ([]*models.Banner, error) <span class="cov8" title="1">{
+        banners, err := s.bannerRepository.GetBannersByUserID(userID)
+        if err != nil </span><span class="cov8" title="1">{
+                logger.Error("Failed to get banners by user ID", zap.String("user_id", userID), zap.Error(err))
+                return nil, err
+        }</span>
+        
+        <span class="cov8" title="1">return banners, nil</span>
+}</pre>
+		
+		<pre class="file" id="file9" style="display: none">package services
+
+import (
+        "backend-developer-assignment/app/models"
+        "backend-developer-assignment/app/repositories"
+
+        "github.com/google/uuid"
+)
+
+// DebitCardService defines the interface for debit card operations
+type DebitCardService interface {
+        // Card operations
+        GetCardByID(cardID string) (*models.DebitCard, error)
+        GetCardsByUserID(userID string) ([]*models.DebitCard, error)
+        GetCardWithDetailByID(cardID string) (*models.DebitCardWithDetails, error)
+        GetCardWithDetailByUserID(userID string) ([]*models.DebitCardWithDetails, error)
+
+        // Create operations
+        CreateCardWithDetails(cardWithDetails *models.DebitCardWithDetails) error
+
+        // Update operations
+        UpdateCard(card *models.DebitCard, name, color, borderColor string) error
+
+        // Delete operations
+        DeleteCard(cardID string) error
+}
+
+// DebitCardServiceImpl implements DebitCardService
+type DebitCardServiceImpl struct {
+        debitCardRepository repositories.DebitCardRepository
+}
+
+// NewDebitCardService creates a new instance of DebitCardService
+func NewDebitCardService(repo repositories.DebitCardRepository) DebitCardService <span class="cov8" title="1">{
+        return &amp;DebitCardServiceImpl{
+                debitCardRepository: repo,
+        }
+}</span>
+
+// GetCardByID retrieves a debit card by ID
+func (s *DebitCardServiceImpl) GetCardByID(cardID string) (*models.DebitCard, error) <span class="cov8" title="1">{
+        return s.debitCardRepository.GetCardByID(cardID)
+}</span>
+
+// GetCardsByUserID retrieves all debit cards for a user
+func (s *DebitCardServiceImpl) GetCardsByUserID(userID string) ([]*models.DebitCard, error) <span class="cov0" title="0">{
+        return s.debitCardRepository.GetCardsByUserID(userID)
+}</span>
+
+// GetCardWithDetailByID retrieves a complete debit card with all related information by ID
+func (s *DebitCardServiceImpl) GetCardWithDetailByID(cardID string) (*models.DebitCardWithDetails, error) <span class="cov8" title="1">{
+        return s.debitCardRepository.GetCardWithDetailByID(cardID)
+}</span>
+
+// GetCardWithDetailByUserID retrieves all complete debit cards with related information for a user
+func (s *DebitCardServiceImpl) GetCardWithDetailByUserID(userID string) ([]*models.DebitCardWithDetails, error) <span class="cov8" title="1">{
+        return s.debitCardRepository.GetCardWithDetailByUserID(userID)
+}</span>
+
+// CreateCardWithDetails creates a new debit card with all related details
+func (s *DebitCardServiceImpl) CreateCardWithDetails(cardWithDetails *models.DebitCardWithDetails) error <span class="cov8" title="1">{
+        // Generate a new UUID if not provided
+        if cardWithDetails.CardID == "" </span><span class="cov8" title="1">{
+                cardWithDetails.CardID = uuid.New().String()
+        }</span>
+
+        // Create card default status to in-progress
+        <span class="cov8" title="1">cardWithDetails.Status = string(models.CardStatusInprogress)
+
+        if err := s.debitCardRepository.CreateCard(cardWithDetails); err != nil </span><span class="cov8" title="1">{
+                return err
+        }</span>
+
+        <span class="cov8" title="1">return nil</span>
+}
+
+// UpdateCard updates an existing debit card
+func (s *DebitCardServiceImpl) UpdateCard(card *models.DebitCard, name, color, borderColor string) error <span class="cov8" title="1">{
+        return s.debitCardRepository.UpdateCardByID(card.CardID, card.UserID, func(card *models.DebitCardWithDetails) (bool, error) </span><span class="cov8" title="1">{
+                isUpdate := false
+
+                if name != "" &amp;&amp; card.Name != name </span><span class="cov8" title="1">{
+                        card.Name = name
+                        isUpdate = true
+                }</span>
+                <span class="cov8" title="1">if color != "" &amp;&amp; card.Color != color </span><span class="cov8" title="1">{
+                        card.Color = color
+                        isUpdate = true
+                }</span>
+                <span class="cov8" title="1">if borderColor != "" &amp;&amp; card.BorderColor != borderColor </span><span class="cov8" title="1">{
+                        card.BorderColor = borderColor
+                        isUpdate = true
+                }</span>
+
+                <span class="cov8" title="1">return isUpdate, nil</span>
+        })
+}
+
+// DeleteCard marks a card as deleted without removing it
+func (s *DebitCardServiceImpl) DeleteCard(cardID string) error <span class="cov8" title="1">{
+        // update status card to inactive
+        cardStatus := models.DebitCardStatus{
+                CardID: cardID,
+                Status: string(models.CardStatusInactive),
+        }
+        return s.debitCardRepository.UpdateCardStatus(&amp;cardStatus)
+}</span>
+</pre>
+		
+		<pre class="file" id="file10" style="display: none">package services
+
+import (
+        "backend-developer-assignment/app/repositories"
+        "backend-developer-assignment/pkg/middleware"
+        "backend-developer-assignment/platform/cache"
+)
+
+type Service struct {
+        UserService        UserService
+        TransactionService TransactionService
+        DebitCardService   DebitCardService
+        AccountService     AccountService
+        BannerService      BannerService
+}
+
+var logger = middleware.GetLogger()
+
+func InitService(repo *repositories.Repository, txProvider repositories.TxProvider, redisClient *cache.RedisClient) *Service <span class="cov0" title="0">{
+        return &amp;Service{
+                UserService:        NewUserService(repo.UserRepository, repo.UserGreetingsRepository),
+                TransactionService: NewTransactionService(repo.TransactionRepository, redisClient),
+                DebitCardService:   NewDebitCardService(repo.DebitCardRepository),
+                AccountService:     NewAccountService(repo.AccountRepository, repo.TransactionRepository, txProvider),
+                BannerService:      NewBannerService(repo.BannerRepository),
+        }
+}</span>
+</pre>
+		
+		<pre class="file" id="file11" style="display: none">package services
+
+import (
+        "backend-developer-assignment/app/models"
+        "backend-developer-assignment/app/repositories"
+        "backend-developer-assignment/pkg/configs"
+        "backend-developer-assignment/pkg/types"
+        "context"
+        "encoding/json"
+        "fmt"
+        "strings"
+        "time"
+
+        "github.com/google/uuid"
+        "go.uber.org/zap"
+)
+
+// Cache expiration time constants
+const (
+        TransactionCacheDuration     = 10 * time.Minute
+        TransactionListCacheDuration = 5 * time.Minute
+)
+
+// TransactionService interface defines the methods for transaction business logic
+type TransactionService interface {
+        GetTransactionByID(id string) (*models.Transaction, error)
+        GetTransactionsByUserID(userID string, page int) ([]*models.Transaction, int, error)
+        CreateTransaction(transaction *models.Transaction) error
+}
+
+// TransactionServiceImpl contains business logic related to transactions.
+type TransactionServiceImpl struct {
+        TransactionRepository repositories.TransactionRepository
+        redisClient           types.CacheClient
+}
+
+// NewTransactionService creates a new TransactionService.
+func NewTransactionService(transactionRepository repositories.TransactionRepository, redisClient types.CacheClient) TransactionService <span class="cov8" title="1">{
+        return &amp;TransactionServiceImpl{
+                TransactionRepository: transactionRepository,
+                redisClient:           redisClient,
+        }
+}</span>
+
+// GetTransactionByID retrieves a transaction by ID.
+func (s *TransactionServiceImpl) GetTransactionByID(id string) (*models.Transaction, error) <span class="cov8" title="1">{
+        ctx := context.Background()
+        cacheKey := fmt.Sprintf("transaction:%s", id)
+
+        // Try to get from cache first
+        cachedData, err := s.redisClient.Get(ctx, cacheKey)
+        if err == nil </span><span class="cov8" title="1">{
+                // Cache hit - deserialize and return
+                var transaction models.Transaction
+                if err := json.Unmarshal([]byte(cachedData), &amp;transaction); err == nil </span><span class="cov8" title="1">{
+                        return &amp;transaction, nil
+                }</span>
+        }
+
+        // Cache miss or error - get from database
+        <span class="cov8" title="1">transaction, err := s.TransactionRepository.GetByID(id)
+        if err != nil </span><span class="cov8" title="1">{
+                return nil, err
+        }</span>
+
+        // Store in cache for future requests
+        <span class="cov8" title="1">if transactionData, err := json.Marshal(transaction); err == nil </span><span class="cov8" title="1">{
+                if err := s.redisClient.Set(ctx, cacheKey, transactionData, TransactionCacheDuration); err != nil </span><span class="cov0" title="0">{
+                        logger.Warn("Failed to set cache for transaction", zap.String("transaction_id", id), zap.Error(err))
+                }</span>
+        }
+
+        <span class="cov8" title="1">return transaction, nil</span>
+}
+
+// GetTransactionsByUserID retrieves all transactions for a user.
+func (s *TransactionServiceImpl) GetTransactionsByUserID(userID string, page int) ([]*models.Transaction, int, error) <span class="cov8" title="1">{
+        ctx := context.Background()
+        cacheKey := fmt.Sprintf("transactions:user:%s:page:%d", userID, page)
+        countCacheKey := fmt.Sprintf("transactions:user:%s:count", userID)
+
+        // Try to get from cache first
+        cachedData, err := s.redisClient.Get(ctx, cacheKey)
+        cachedCount, countErr := s.redisClient.Get(ctx, countCacheKey)
+
+        if err == nil &amp;&amp; countErr == nil </span><span class="cov8" title="1">{
+                // Cache hit - deserialize and return
+                var transactions []*models.Transaction
+                var count int
+
+                if err := json.Unmarshal([]byte(cachedData), &amp;transactions); err == nil </span><span class="cov8" title="1">{
+                        if _, err := fmt.Sscanf(cachedCount, "%d", &amp;count); err == nil </span><span class="cov8" title="1">{
+                                return transactions, count, nil
+                        }</span>
+                }
+        }
+
+        // Cache miss or error - get from database
+        <span class="cov8" title="1">orderBy := "created_at desc"
+        perPage := configs.DEFAULT_PAGE_SIZE
+        offset := (page - 1) * perPage
+        transactions, count, err := s.TransactionRepository.GetByUserIDWithPagination(userID, orderBy, perPage, offset)
+        if err != nil </span><span class="cov8" title="1">{
+                return nil, 0, err
+        }</span>
+
+        // Store in cache for future requests
+        <span class="cov8" title="1">if transactionsData, err := json.Marshal(transactions); err == nil </span><span class="cov8" title="1">{
+                if err := s.redisClient.Set(ctx, cacheKey, transactionsData, TransactionListCacheDuration); err != nil </span><span class="cov0" title="0">{
+                        logger.Warn("Failed to set cache for transactions", zap.String("user_id", userID), zap.Error(err))
+                }</span>
+                <span class="cov8" title="1">if err := s.redisClient.Set(ctx, countCacheKey, fmt.Sprintf("%d", count), TransactionListCacheDuration); err != nil </span><span class="cov0" title="0">{
+                        logger.Warn("Failed to set cache for transactions count", zap.String("user_id", userID), zap.Error(err))
+                }</span>
+        }
+
+        <span class="cov8" title="1">return transactions, count, nil</span>
+}
+
+// CreateTransaction creates a new transaction.
+func (s *TransactionServiceImpl) CreateTransaction(transaction *models.Transaction) error <span class="cov8" title="1">{
+        // Generate a new UUID if not provided
+        if transaction.TransactionID == "" </span><span class="cov8" title="1">{
+                transaction.TransactionID = uuid.New().String()
+        }</span>
+
+        // Create transaction in database
+        <span class="cov8" title="1">err := s.TransactionRepository.Create(transaction)
+        if err != nil </span><span class="cov8" title="1">{
+                return err
+        }</span>
+
+        // Invalidate user transactions cache
+        <span class="cov8" title="1">ctx := context.Background()
+        userTransactionsPattern := fmt.Sprintf("transactions:user:%s:*", transaction.UserID)
+        s.invalidateCache(ctx, userTransactionsPattern)
+
+        // Cache the new transaction
+        cacheKey := fmt.Sprintf("transaction:%s", transaction.TransactionID)
+        if transactionData, err := json.Marshal(transaction); err == nil </span><span class="cov8" title="1">{
+                if err := s.redisClient.Set(ctx, cacheKey, transactionData, TransactionCacheDuration); err != nil </span><span class="cov0" title="0">{
+                        logger.Warn("Failed to set cache for new transaction", zap.String("transaction_id", transaction.TransactionID), zap.Error(err))
+                }</span>
+        }
+
+        <span class="cov8" title="1">return nil</span>
+}
+
+// invalidateCache invalidates cache entries matching the given pattern
+func (s *TransactionServiceImpl) invalidateCache(ctx context.Context, pattern string) <span class="cov8" title="1">{
+        if err := s.redisClient.Delete(ctx, strings.TrimSuffix(pattern, "*")); err != nil </span><span class="cov0" title="0">{
+                logger.Warn("Failed to invalidate cache", zap.String("pattern", pattern), zap.Error(err))
+        }</span>
+}
+</pre>
+		
+		<pre class="file" id="file12" style="display: none">package services
+
+import (
+        "backend-developer-assignment/app/models"
+        "backend-developer-assignment/app/repositories"
+)
+
+type UserService interface {
+        GetUserByID(id string) (*models.User, error)
+        GetUserGreetingByID(id string) (*models.UserGreeting, error)
+        UpdateUserGreeting(greeting *models.UserGreeting) error
+        UpdateUser(user *models.User) error
+}
+
+// UserService contains business logic related to users.
+type UserServiceImpl struct {
+        UserRepository         repositories.UserRepository
+        UserGreetingRepository repositories.UserGreetingRepository
+}
+
+// NewUserService creates a new UserService.
+func NewUserService(userRepository repositories.UserRepository, userGreetingRepository repositories.UserGreetingRepository) UserService <span class="cov8" title="1">{
+        return &amp;UserServiceImpl{
+                UserRepository:         userRepository,
+                UserGreetingRepository: userGreetingRepository,
+        }
+}</span>
+
+// GetUserByID retrieves a user by ID.
+func (s *UserServiceImpl) GetUserByID(id string) (*models.User, error) <span class="cov8" title="1">{
+        return s.UserRepository.GetByID(id)
+}</span>
+func (s *UserServiceImpl) UpdateUser(user *models.User) error <span class="cov8" title="1">{
+        return s.UserRepository.Update(user)
+}</span>
+
+// GetUserByID retrieves a user greeting by ID.
+func (s *UserServiceImpl) GetUserGreetingByID(id string) (*models.UserGreeting, error) <span class="cov8" title="1">{
+        return s.UserGreetingRepository.GetByID(id)
+}</span>
+
+// UpdateUserGreeting updates a user greeting.
+func (s *UserServiceImpl) UpdateUserGreeting(greeting *models.UserGreeting) error <span class="cov8" title="1">{
+        return s.UserGreetingRepository.Update(greeting)
+}</span>
+</pre>
+		
+		</div>
+	</body>
+	<script>
+	(function() {
+		var files = document.getElementById('files');
+		var visible;
+		files.addEventListener('change', onChange, false);
+		function select(part) {
+			if (visible)
+				visible.style.display = 'none';
+			visible = document.getElementById(part);
+			if (!visible)
+				return;
+			files.value = part;
+			visible.style.display = 'block';
+			location.hash = part;
+		}
+		function onChange() {
+			select(files.value);
+			window.scrollTo(0, 0);
+		}
+		if (location.hash != "") {
+			select(location.hash.substr(1));
+		}
+		if (!visible) {
+			select("file0");
+		}
+	})();
+	</script>
+</html>

@@ -3,6 +3,7 @@ package controllers
 import (
 	"backend-developer-assignment/app/services"
 	"backend-developer-assignment/pkg/middleware"
+	"strconv"
 
 	fiber "github.com/gofiber/fiber/v2"
 )
@@ -31,7 +32,7 @@ func InitController(service *services.Service) *Controller {
 
 func ErrorResponse(ctx *fiber.Ctx, statusCode int, message string) error {
 	return ctx.Status(statusCode).JSON(fiber.Map{
-		"code":    string(statusCode),
+		"code":    strconv.Itoa(statusCode),
 		"message": message,
 	})
 }

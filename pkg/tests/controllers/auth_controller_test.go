@@ -1,4 +1,4 @@
-package controllers
+package controllers_test
 
 import (
 	"backend-developer-assignment/app/controllers"
@@ -134,6 +134,7 @@ func (s *AuthControllerTestSuite) TestVerifyPin_UserNotFound() {
 
 	// Expected response
 	expectedBody := map[string]interface{}{
+		"code":    "404",
 		"message": "User does not exist",
 	}
 	s.testResponse(resp, fiber.StatusNotFound, expectedBody)
@@ -170,6 +171,7 @@ func (s *AuthControllerTestSuite) TestVerifyPin_InvalidPIN() {
 
 	// Expected response
 	expectedBody := map[string]interface{}{
+		"code":    "401",
 		"message": "Invalid PIN",
 	}
 	s.testResponse(resp, fiber.StatusUnauthorized, expectedBody)
