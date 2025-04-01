@@ -10,6 +10,16 @@ definitions:
       message:
         type: string
     type: object
+  controllers.UpdateUserGreeting.updateUserGreetingRequest:
+    properties:
+      message:
+        type: string
+    type: object
+  controllers.UpdateUserGreeting.updateUserGreetingResponse:
+    properties:
+      message:
+        type: string
+    type: object
   controllers.VerifyPin.verifyPinRequest:
     properties:
       pin:
@@ -21,6 +31,56 @@ definitions:
     properties:
       refresh_token:
         type: string
+    type: object
+  models.Transaction:
+    properties:
+      account_id:
+        type: string
+      amount:
+        type: number
+      created_at:
+        type: string
+      deleted_at:
+        description: for soft delete
+        type: string
+      image:
+        type: string
+      is_bank:
+        type: boolean
+      name:
+        type: string
+      transaction_id:
+        type: string
+      transaction_type:
+        description: deposit, withdrawal, transfer
+        type: string
+      updated_at:
+        type: string
+      user_id:
+        type: string
+    required:
+    - account_id
+    - amount
+    - transaction_id
+    - transaction_type
+    - user_id
+    type: object
+  models.User:
+    properties:
+      created_at:
+        type: string
+      deleted_at:
+        description: for soft delete
+        type: string
+      name:
+        type: string
+      updated_at:
+        type: string
+      user_id:
+        type: string
+    required:
+    - name
+    - user_id
     type: object
 host: localhost:8080
 info:
@@ -105,6 +165,70 @@ paths:
       summary: renew access and refresh tokens
       tags:
       - Token
+  /transactions:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves all transactions for a user.
+      parameters:
+      - description: Page number
+        in: query
+        name: page
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of transactions
+          schema:
+            properties:
+              total:
+                type: integer
+              transactions:
+                items:
+                  $ref: '#/definitions/models.Transaction'
+                type: array
+            type: object
+        "400":
+          description: Invalid input format
+          schema:
+            $ref: '#/definitions/base.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/base.ErrorResponse'
+        "500":
+          description: Failed to retrieve transactions
+          schema:
+            $ref: '#/definitions/base.ErrorResponse'
+      summary: List transactions
+      tags:
+      - Transactions
+  /user:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves the information of the authenticated user
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Returns the user information
+          schema:
+            $ref: '#/definitions/models.User'
+        "401":
+          description: Unauthorized - Invalid or missing token
+          schema:
+            $ref: '#/definitions/base.ErrorResponse'
+        "404":
+          description: User not found
+          schema:
+            $ref: '#/definitions/base.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Get user's information
+      tags:
+      - User
   /user/greeting:
     get:
       consumes:
@@ -128,6 +252,45 @@ paths:
       security:
       - ApiKeyAuth: []
       summary: Get user's greeting message
+      tags:
+      - User
+    put:
+      consumes:
+      - application/json
+      description: Update the greeting message of the authenticated user
+      parameters:
+      - description: Request body
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/controllers.UpdateUserGreeting.updateUserGreetingRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Returns the updated greeting message
+          schema:
+            $ref: '#/definitions/controllers.UpdateUserGreeting.updateUserGreetingResponse'
+        "400":
+          description: Bad request - Invalid input format
+          schema:
+            $ref: '#/definitions/base.ErrorResponse'
+        "401":
+          description: Unauthorized - Invalid or missing token
+          schema:
+            $ref: '#/definitions/base.ErrorResponse'
+        "404":
+          description: User not found
+          schema:
+            $ref: '#/definitions/base.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/base.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Update user's greeting message
       tags:
       - User
 securityDefinitions:

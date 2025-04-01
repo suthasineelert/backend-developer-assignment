@@ -8,8 +8,8 @@ type DebitCardWithDetails struct {
 	CardID    string    `db:"card_id" json:"card_id"`
 	UserID    string    `db:"user_id" json:"user_id"`
 	Name      string    `db:"name" json:"name"`
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
+	CreatedAt time.Time `db:"created_at" json:"created_at"`
+	UpdatedAt time.Time `db:"updated_at" json:"updated_at"`
 
 	// DebitCardDetail fields
 	Issuer string `db:"issuer" json:"issuer"`

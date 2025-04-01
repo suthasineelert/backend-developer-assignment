@@ -26,5 +26,20 @@ services:
       - mysql_data:/var/lib/mysql
     restart: unless-stopped
 
+  db_test:
+    image: mysql:8.4.4
+    container_name: mysql-db-test
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_USER: mysql
+      MYSQL_PASSWORD: mysql
+      MYSQL_DATABASE: assignment_test
+    ports:
+      - "33060:3306"
+    volumes:
+      - mysql_data_test:/var/lib/mysql
+    restart: unless-stopped
+
 volumes:
   mysql_data:
+  mysql_data_test:

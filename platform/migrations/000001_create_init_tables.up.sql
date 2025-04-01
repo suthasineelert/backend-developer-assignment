@@ -10,7 +10,7 @@ CREATE TABLE `account_details` (
     `account_id` varchar(50) NOT NULL,
     `user_id` varchar(50) DEFAULT NULL,
     `color` varchar(10) DEFAULT NULL,
-    `is_main_account` tinyint (1) DEFAULT NULL,
+    `is_main_account` tinyint(1) DEFAULT NULL,
     `progress` int DEFAULT NULL,
     `dummy_col_5` varchar(255) DEFAULT NULL,
     PRIMARY KEY (`account_id`)
@@ -87,7 +87,7 @@ CREATE TABLE `transactions` (
     `user_id` varchar(50) DEFAULT NULL,
     `name` varchar(100) DEFAULT NULL,
     `image` varchar(255) DEFAULT NULL,
-    `isBank` tinyint (1) DEFAULT NULL,
+    `isBank` tinyint(1) DEFAULT NULL,
     `dummy_col_6` varchar(255) DEFAULT NULL,
     PRIMARY KEY (`transaction_id`)
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci;

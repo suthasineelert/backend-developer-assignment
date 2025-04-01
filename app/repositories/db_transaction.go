@@ -51,6 +51,7 @@ func (p *TransactionProvider) Transact(txFunc func(adapters Adapters) error) err
 func runInTx[T any](db T, fn func(tx *sqlx.Tx) error) error {
 	var tx *sqlx.Tx
 	var err error
+	var isTx bool = false
 
 	// Check if db is *sql.DB or *sql.Tx
 	switch d := any(db).(type) {
@@ -63,12 +64,16 @@ func runInTx[T any](db T, fn func(tx *sqlx.Tx) error) error {
 	case *sqlx.Tx:
 		// Use the existing transaction
 		tx = d
+		isTx = true
 	default:
 		return errors.New("invalid db type, only *sql.DB and *sql.Tx are supported")
 	}
 
 	err = fn(tx)
 	if err == nil {
+		if isTx {
+			return nil // no need to commit if it's a transaction, since it might be nested in an outer tx
+		}
 		return tx.Commit()
 	}
 

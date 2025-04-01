@@ -70,7 +70,7 @@ To apply migration manually, specify DATABASE_URL before running migrate command
 ```bash
 make migrate.up
 # or with DATABASE_URL
-DATABASE_URL="mysql://user:password@localhost:3306/dbname" make migrate.up
+DATABASE_URL="mysql://user:password@tcp(localhost:3306)/assignment" make migrate.up
 ```
 
 ### Rollback migrations

@@ -35,7 +35,7 @@ func InitLogger() {
 	if os.Getenv("APP_ENV") == "dev" {
 		logConfig = zap.NewDevelopmentConfig()
 	} else {
-		logConfig = zap.NewProductionConfig()
+		logConfig = zap.NewDevelopmentConfig()
 	}
 
 	if os.Getenv("LOG_LEVEL") == "DEBUG" {

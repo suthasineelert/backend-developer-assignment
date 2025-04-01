@@ -83,13 +83,14 @@ func (r *TransactionRepositoryImpl) Create(transaction *models.Transaction) erro
 	transaction.UpdatedAt = now
 
 	query := `INSERT INTO transactions (
-		transaction_id, user_id, name, image, isBank, amount, transaction_type, created_at, updated_at
-	) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`
+		transaction_id, user_id, account_id, name, image, isBank, amount, transaction_type, created_at, updated_at
+	) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
 
 	_, err := r.DB.Exec(
 		query,
 		transaction.TransactionID,
 		transaction.UserID,
+		transaction.AccountID,
 		transaction.Name,
 		transaction.Image,
 		transaction.IsBank,

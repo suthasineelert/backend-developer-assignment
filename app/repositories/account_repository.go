@@ -426,6 +426,7 @@ func (r *AccountRepositoryImpl) UpdateAccountBalance(accountID string, updateFn 
 		// Update the balance
 		updateQuery := `UPDATE account_balances SET amount = ? WHERE account_id = ?`
 		_, err = tx.Exec(updateQuery, newBalance, accountID)
+
 		return err
 	})
 }
