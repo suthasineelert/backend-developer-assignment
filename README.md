@@ -41,7 +41,7 @@ make docker-compose.up
 - [x] Update Debit Card (Name, Color, Border Color)
 - [x] Create Debit Card
 - [x] Delete Debit Card
-- [] Get Banner
+- [x] Get Banner
 
 ## Key Notes
 - Database transaction will be handled in repository layer, but the logic will be pass through function
