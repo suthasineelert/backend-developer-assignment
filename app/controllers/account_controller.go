@@ -22,6 +22,14 @@ func NewAccountController(accountService services.AccountService) *AccountContro
 }
 
 // ListAccounts retrieves all accounts for a user
+//
+//	@Summary		List accounts
+//	@Description	Get all accounts for a user
+//	@Tags			accounts
+//	@Accept			json
+//	@Produce		json
+//	@Success		200	{object}	[]models.AccountWithDetails
+//	@Router			/accounts [get]
 func (ac *AccountController) ListAccounts(ctx *fiber.Ctx) error {
 	userID := ctx.Locals("userID").(string)
 
@@ -35,6 +43,15 @@ func (ac *AccountController) ListAccounts(ctx *fiber.Ctx) error {
 }
 
 // GetAccount retrieves a single account by ID
+//
+//	@Summary		Get account
+//	@Description	Get a single account by ID
+//	@Tags			accounts
+//	@Accept			json
+//	@Produce		json
+//	@Param			id	path		string	true	"Account ID"
+//	@Success		200	{object}	models.AccountWithDetails
+//	@Router			/accounts/{id} [get]
 func (ac *AccountController) GetAccount(ctx *fiber.Ctx) error {
 	// Get account_id from path parameters
 	accountID := ctx.Params("id")
@@ -52,6 +69,15 @@ func (ac *AccountController) GetAccount(ctx *fiber.Ctx) error {
 }
 
 // CreateAccount handles account creation
+//
+//	@Summary		Create account
+//	@Description	Create a new account
+//	@Tags			accounts
+//	@Accept			json
+//	@Produce		json
+//	@Param			account	body		controllers.CreateAccount.createAccountRequest	true	"Account details"
+//	@Success		201		{object}	models.AccountWithDetails
+//	@Router			/accounts [post]
 func (ac *AccountController) CreateAccount(ctx *fiber.Ctx) error {
 	type createAccountRequest struct {
 		Type          string  `json:"type" validate:"required,oneof=saving-account credit-loan goal-driven-saving"`
@@ -114,6 +140,16 @@ func (ac *AccountController) CreateAccount(ctx *fiber.Ctx) error {
 }
 
 // UpdateAccount updates an existing account
+//
+//	@Summary		Update account
+//	@Description	Update an existing account
+//	@Tags			accounts
+//	@Accept			json
+//	@Produce		json
+//	@Param			id		path		string					true	"Account ID"
+//	@Param			account	body		controllers.UpdateAccount.updateAccountRequest	true	"Account details"
+//	@Success		200		{object}	models.AccountWithDetails
+//	@Router			/accounts/{id} [patch]
 func (ac *AccountController) UpdateAccount(ctx *fiber.Ctx) error {
 	type updateAccountRequest struct {
 		Type          string `json:"type" validate:"omitempty,oneof=saving-account credit-loan goal-driven-saving"`
@@ -176,6 +212,15 @@ func (ac *AccountController) UpdateAccount(ctx *fiber.Ctx) error {
 }
 
 // SetMainAccount sets an account as the main account
+//
+//	@Summary		Set main account
+//	@Description	Set an account as the main account
+//	@Tags			accounts
+//	@Accept			json
+//	@Produce		json
+//	@Param			id	path		string	true	"Account ID"
+//	@Success		200	{object}	map[string]string
+//	@Router			/accounts/{id}/main [put]
 func (ac *AccountController) SetMainAccount(ctx *fiber.Ctx) error {
 	// Get account_id from path parameters
 	accountID := ctx.Params("id")
@@ -198,6 +243,16 @@ func (ac *AccountController) SetMainAccount(ctx *fiber.Ctx) error {
 }
 
 // Withdraw handles withdrawing money from an account
+//
+//	@Summary		Withdraw money
+//	@Description	Withdraw money from an account
+//	@Tags			accounts
+//	@Accept			json
+//	@Produce		json
+//	@Param			id		path		string			true	"Account ID"
+//	@Param			amount	body		controllers.Withdraw.withdrawRequest	true	"Amount to withdraw"
+//	@Success		200		{object}	map[string]interface{}
+//	@Router			/accounts/{id}/withdraw [post]
 func (ac *AccountController) Withdraw(ctx *fiber.Ctx) error {
 	type withdrawRequest struct {
 		Amount float64 `json:"amount" validate:"required,gt=0"`
@@ -231,7 +286,6 @@ func (ac *AccountController) Withdraw(ctx *fiber.Ctx) error {
 		return ErrorResponse(ctx, fiber.StatusBadRequest, "Insufficient funds")
 	}
 
-	// Use a transaction to handle the withdrawal with proper locking
 	updatedBalance, err := ac.accountService.WithdrawFromAccount(accountID, request.Amount)
 	if err != nil {
 		if err.Error() == "insufficient funds" {
@@ -249,6 +303,16 @@ func (ac *AccountController) Withdraw(ctx *fiber.Ctx) error {
 }
 
 // Deposit handles depositing money to an account
+//
+//	@Summary		Deposit money
+//	@Description	Deposit money to an account
+//	@Tags			accounts
+//	@Accept			json
+//	@Produce		json
+//	@Param			id		path		string			true	"Account ID"
+//	@Param			amount	body		controllers.Deposit.depositRequest	true	"Amount to deposit"
+//	@Success		200		{object}	map[string]interface{}
+//	@Router			/accounts/{id}/deposit [post]
 func (ac *AccountController) Deposit(ctx *fiber.Ctx) error {
 	type depositRequest struct {
 		Amount float64 `json:"amount" validate:"required,gt=0"`
@@ -271,7 +335,6 @@ func (ac *AccountController) Deposit(ctx *fiber.Ctx) error {
 		return ErrorResponse(ctx, fiber.StatusBadRequest, utils.ValidatorErrors(err))
 	}
 
-	// Use a transaction to handle the deposit with proper locking
 	updatedBalance, err := ac.accountService.DepositToAccount(accountID, request.Amount)
 	if err != nil {
 		logger.Error("Failed to deposit to account", zap.String("account_id", accountID), zap.Float64("amount", request.Amount), zap.Error(err))
@@ -286,6 +349,15 @@ func (ac *AccountController) Deposit(ctx *fiber.Ctx) error {
 }
 
 // Transfer handles transferring money between accounts
+//
+//	@Summary		Transfer money
+//	@Description	Transfer money between accounts
+//	@Tags			accounts
+//	@Accept			json
+//	@Produce		json
+//	@Param			transfer	body		controllers.Transfer.transferRequest	true	"Transfer details"
+//	@Success		200			{object}	map[string]interface{}
+//	@Router			/accounts/transfer [post]
 func (ac *AccountController) Transfer(ctx *fiber.Ctx) error {
 	type transferRequest struct {
 		FromAccountID string  `json:"from_account_id" validate:"required"`
@@ -304,7 +376,6 @@ func (ac *AccountController) Transfer(ctx *fiber.Ctx) error {
 		return ErrorResponse(ctx, fiber.StatusBadRequest, utils.ValidatorErrors(err))
 	}
 
-	// Use a transaction to handle the transfer with proper locking
 	result, err := ac.accountService.TransferBetweenAccounts(
 		request.FromAccountID,
 		request.ToAccountID,

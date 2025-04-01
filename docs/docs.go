@@ -23,6 +23,289 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/accounts": {
+            "get": {
+                "description": "Get all accounts for a user",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "accounts"
+                ],
+                "summary": "List accounts",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.AccountWithDetails"
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "Create a new account",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "accounts"
+                ],
+                "summary": "Create account",
+                "parameters": [
+                    {
+                        "description": "Account details",
+                        "name": "account",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/controllers.CreateAccount.createAccountRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/models.AccountWithDetails"
+                        }
+                    }
+                }
+            }
+        },
+        "/accounts/transfer": {
+            "post": {
+                "description": "Transfer money between accounts",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "accounts"
+                ],
+                "summary": "Transfer money",
+                "parameters": [
+                    {
+                        "description": "Transfer details",
+                        "name": "transfer",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/controllers.Transfer.transferRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/accounts/{id}": {
+            "get": {
+                "description": "Get a single account by ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "accounts"
+                ],
+                "summary": "Get account",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Account ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.AccountWithDetails"
+                        }
+                    }
+                }
+            },
+            "patch": {
+                "description": "Update an existing account",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "accounts"
+                ],
+                "summary": "Update account",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Account ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Account details",
+                        "name": "account",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/controllers.UpdateAccount.updateAccountRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.AccountWithDetails"
+                        }
+                    }
+                }
+            }
+        },
+        "/accounts/{id}/deposit": {
+            "post": {
+                "description": "Deposit money to an account",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "accounts"
+                ],
+                "summary": "Deposit money",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Account ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Amount to deposit",
+                        "name": "amount",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/controllers.Deposit.depositRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/accounts/{id}/main": {
+            "put": {
+                "description": "Set an account as the main account",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "accounts"
+                ],
+                "summary": "Set main account",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Account ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/accounts/{id}/withdraw": {
+            "post": {
+                "description": "Withdraw money from an account",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "accounts"
+                ],
+                "summary": "Withdraw money",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Account ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Amount to withdraw",
+                        "name": "amount",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/controllers.Withdraw.withdrawRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
         "/auth/verify-pin": {
             "post": {
                 "description": "Verify user PIN and return JWT token",
@@ -89,6 +372,202 @@ const docTemplate = `{
                         "description": "Failed to generate token",
                         "schema": {
                             "$ref": "#/definitions/base.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/banners": {
+            "get": {
+                "description": "List all banners for the current user",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Banners"
+                ],
+                "summary": "List banners",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.Banner"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/banners/{id}": {
+            "get": {
+                "description": "Get a banner by its ID",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Banners"
+                ],
+                "summary": "Get banner by ID",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Banner ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.Banner"
+                        }
+                    }
+                }
+            }
+        },
+        "/debit_cards": {
+            "get": {
+                "description": "List all debit cards for a user",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Debit Cards"
+                ],
+                "summary": "List debit cards",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.DebitCardWithDetails"
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "Create a new debit card with all its details",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Debit Cards"
+                ],
+                "summary": "Create debit card",
+                "parameters": [
+                    {
+                        "description": "Card details",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/controllers.CreateDebitCard.createDebitCardRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/models.DebitCardWithDetails"
+                        }
+                    }
+                }
+            }
+        },
+        "/debit_cards/{id}": {
+            "get": {
+                "description": "Get a specific debit card by ID",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Debit Cards"
+                ],
+                "summary": "Get debit card",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Card ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.DebitCardWithDetails"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "description": "Update an existing debit card",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Debit Cards"
+                ],
+                "summary": "Update debit card",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Card ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Card details",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/controllers.UpdateDebitCard.updateDebitCardRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.DebitCardWithDetails"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "description": "Delete a debit card",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Debit Cards"
+                ],
+                "summary": "Delete debit card",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Card ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Card deleted",
+                        "schema": {
+                            "type": "string"
                         }
                     }
                 }
@@ -344,10 +823,142 @@ const docTemplate = `{
                 }
             }
         },
+        "controllers.CreateAccount.createAccountRequest": {
+            "type": "object",
+            "required": [
+                "account_number",
+                "currency",
+                "issuer",
+                "type"
+            ],
+            "properties": {
+                "account_number": {
+                    "type": "string"
+                },
+                "amount": {
+                    "type": "number"
+                },
+                "color": {
+                    "type": "string"
+                },
+                "currency": {
+                    "type": "string"
+                },
+                "is_main_account": {
+                    "type": "boolean"
+                },
+                "issuer": {
+                    "type": "string"
+                },
+                "type": {
+                    "type": "string",
+                    "enum": [
+                        "saving-account",
+                        "credit-loan",
+                        "goal-driven-saving"
+                    ]
+                }
+            }
+        },
+        "controllers.CreateDebitCard.createDebitCardRequest": {
+            "type": "object",
+            "required": [
+                "issuer",
+                "name"
+            ],
+            "properties": {
+                "border_color": {
+                    "type": "string"
+                },
+                "color": {
+                    "type": "string"
+                },
+                "issuer": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "controllers.Deposit.depositRequest": {
+            "type": "object",
+            "required": [
+                "amount"
+            ],
+            "properties": {
+                "amount": {
+                    "type": "number"
+                }
+            }
+        },
         "controllers.GetUserGreeting.getUserGreetingResponse": {
             "type": "object",
             "properties": {
                 "message": {
+                    "type": "string"
+                }
+            }
+        },
+        "controllers.Transfer.transferRequest": {
+            "type": "object",
+            "required": [
+                "amount",
+                "from_account_id",
+                "to_account_id"
+            ],
+            "properties": {
+                "amount": {
+                    "type": "number"
+                },
+                "from_account_id": {
+                    "type": "string"
+                },
+                "to_account_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "controllers.UpdateAccount.updateAccountRequest": {
+            "type": "object",
+            "properties": {
+                "account_number": {
+                    "type": "string"
+                },
+                "color": {
+                    "type": "string"
+                },
+                "currency": {
+                    "type": "string"
+                },
+                "issuer": {
+                    "type": "string"
+                },
+                "progress": {
+                    "type": "integer",
+                    "maximum": 100,
+                    "minimum": 0
+                },
+                "type": {
+                    "type": "string",
+                    "enum": [
+                        "saving-account",
+                        "credit-loan",
+                        "goal-driven-saving"
+                    ]
+                }
+            }
+        },
+        "controllers.UpdateDebitCard.updateDebitCardRequest": {
+            "type": "object",
+            "properties": {
+                "border_color": {
+                    "type": "string"
+                },
+                "color": {
+                    "type": "string"
+                },
+                "name": {
                     "type": "string"
                 }
             }
@@ -372,6 +983,182 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "pin": {
+                    "type": "string"
+                },
+                "user_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "controllers.Withdraw.withdrawRequest": {
+            "type": "object",
+            "required": [
+                "amount"
+            ],
+            "properties": {
+                "amount": {
+                    "type": "number"
+                }
+            }
+        },
+        "models.AccountFlag": {
+            "type": "object",
+            "required": [
+                "account_id",
+                "flag_type",
+                "flag_value",
+                "user_id"
+            ],
+            "properties": {
+                "account_id": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "deleted_at": {
+                    "description": "for soft delete",
+                    "type": "string"
+                },
+                "flag_id": {
+                    "type": "integer"
+                },
+                "flag_type": {
+                    "description": "system and user",
+                    "type": "string"
+                },
+                "flag_value": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                },
+                "user_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.AccountWithDetails": {
+            "type": "object",
+            "properties": {
+                "account_id": {
+                    "description": "Account fields",
+                    "type": "string"
+                },
+                "account_number": {
+                    "type": "string"
+                },
+                "amount": {
+                    "description": "AccountBalance fields",
+                    "type": "number"
+                },
+                "color": {
+                    "description": "AccountDetail fields",
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "currency": {
+                    "type": "string"
+                },
+                "deleted_at": {
+                    "type": "string"
+                },
+                "flags": {
+                    "description": "AccountFlags",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.AccountFlag"
+                    }
+                },
+                "is_main_account": {
+                    "type": "boolean"
+                },
+                "issuer": {
+                    "type": "string"
+                },
+                "progress": {
+                    "type": "integer"
+                },
+                "type": {
+                    "description": "saving-account, credit-loan, goal-driven-saving",
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                },
+                "user_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.Banner": {
+            "type": "object",
+            "required": [
+                "banner_id",
+                "user_id"
+            ],
+            "properties": {
+                "banner_id": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "deleted_at": {
+                    "description": "for soft delete",
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "image": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                },
+                "user_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.DebitCardWithDetails": {
+            "type": "object",
+            "properties": {
+                "border_color": {
+                    "type": "string"
+                },
+                "card_id": {
+                    "description": "DebitCard fields",
+                    "type": "string"
+                },
+                "color": {
+                    "description": "DebitCardDesign fields",
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "issuer": {
+                    "description": "DebitCardDetail fields",
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "number": {
+                    "type": "string"
+                },
+                "status": {
+                    "description": "DebitCardStatus fields",
+                    "type": "string"
+                },
+                "updated_at": {
                     "type": "string"
                 },
                 "user_id": {

@@ -14,9 +14,8 @@ func AccountRoute(route fiber.Router, controller *controllers.Controller) {
 	accountRoutes.Get("/:id", controller.AccountController.GetAccount)
 	accountRoutes.Patch("/:id", controller.AccountController.UpdateAccount)
 	accountRoutes.Post("", controller.AccountController.CreateAccount)
-	accountRoutes.Post("/:id/main", controller.AccountController.SetMainAccount)
+	accountRoutes.Put("/:id/main", controller.AccountController.SetMainAccount)
 	accountRoutes.Post("/:id/deposit", controller.AccountController.Deposit)
 	accountRoutes.Post("/:id/withdraw", controller.AccountController.Withdraw)
 	accountRoutes.Post("/:id/transfer", controller.AccountController.Transfer)
-
 }

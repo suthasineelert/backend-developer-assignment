@@ -5,9 +5,99 @@ definitions:
       message:
         type: string
     type: object
+  controllers.CreateAccount.createAccountRequest:
+    properties:
+      account_number:
+        type: string
+      amount:
+        type: number
+      color:
+        type: string
+      currency:
+        type: string
+      is_main_account:
+        type: boolean
+      issuer:
+        type: string
+      type:
+        enum:
+        - saving-account
+        - credit-loan
+        - goal-driven-saving
+        type: string
+    required:
+    - account_number
+    - currency
+    - issuer
+    - type
+    type: object
+  controllers.CreateDebitCard.createDebitCardRequest:
+    properties:
+      border_color:
+        type: string
+      color:
+        type: string
+      issuer:
+        type: string
+      name:
+        type: string
+    required:
+    - issuer
+    - name
+    type: object
+  controllers.Deposit.depositRequest:
+    properties:
+      amount:
+        type: number
+    required:
+    - amount
+    type: object
   controllers.GetUserGreeting.getUserGreetingResponse:
     properties:
       message:
+        type: string
+    type: object
+  controllers.Transfer.transferRequest:
+    properties:
+      amount:
+        type: number
+      from_account_id:
+        type: string
+      to_account_id:
+        type: string
+    required:
+    - amount
+    - from_account_id
+    - to_account_id
+    type: object
+  controllers.UpdateAccount.updateAccountRequest:
+    properties:
+      account_number:
+        type: string
+      color:
+        type: string
+      currency:
+        type: string
+      issuer:
+        type: string
+      progress:
+        maximum: 100
+        minimum: 0
+        type: integer
+      type:
+        enum:
+        - saving-account
+        - credit-loan
+        - goal-driven-saving
+        type: string
+    type: object
+  controllers.UpdateDebitCard.updateDebitCardRequest:
+    properties:
+      border_color:
+        type: string
+      color:
+        type: string
+      name:
         type: string
     type: object
   controllers.UpdateUserGreeting.updateUserGreetingRequest:
@@ -23,6 +113,127 @@ definitions:
   controllers.VerifyPin.verifyPinRequest:
     properties:
       pin:
+        type: string
+      user_id:
+        type: string
+    type: object
+  controllers.Withdraw.withdrawRequest:
+    properties:
+      amount:
+        type: number
+    required:
+    - amount
+    type: object
+  models.AccountFlag:
+    properties:
+      account_id:
+        type: string
+      created_at:
+        type: string
+      deleted_at:
+        description: for soft delete
+        type: string
+      flag_id:
+        type: integer
+      flag_type:
+        description: system and user
+        type: string
+      flag_value:
+        type: string
+      updated_at:
+        type: string
+      user_id:
+        type: string
+    required:
+    - account_id
+    - flag_type
+    - flag_value
+    - user_id
+    type: object
+  models.AccountWithDetails:
+    properties:
+      account_id:
+        description: Account fields
+        type: string
+      account_number:
+        type: string
+      amount:
+        description: AccountBalance fields
+        type: number
+      color:
+        description: AccountDetail fields
+        type: string
+      created_at:
+        type: string
+      currency:
+        type: string
+      deleted_at:
+        type: string
+      flags:
+        description: AccountFlags
+        items:
+          $ref: '#/definitions/models.AccountFlag'
+        type: array
+      is_main_account:
+        type: boolean
+      issuer:
+        type: string
+      progress:
+        type: integer
+      type:
+        description: saving-account, credit-loan, goal-driven-saving
+        type: string
+      updated_at:
+        type: string
+      user_id:
+        type: string
+    type: object
+  models.Banner:
+    properties:
+      banner_id:
+        type: string
+      created_at:
+        type: string
+      deleted_at:
+        description: for soft delete
+        type: string
+      description:
+        type: string
+      image:
+        type: string
+      title:
+        type: string
+      updated_at:
+        type: string
+      user_id:
+        type: string
+    required:
+    - banner_id
+    - user_id
+    type: object
+  models.DebitCardWithDetails:
+    properties:
+      border_color:
+        type: string
+      card_id:
+        description: DebitCard fields
+        type: string
+      color:
+        description: DebitCardDesign fields
+        type: string
+      created_at:
+        type: string
+      issuer:
+        description: DebitCardDetail fields
+        type: string
+      name:
+        type: string
+      number:
+        type: string
+      status:
+        description: DebitCardStatus fields
+        type: string
+      updated_at:
         type: string
       user_id:
         type: string
@@ -95,6 +306,193 @@ info:
   title: Backend Developer Assignment API
   version: "1.0"
 paths:
+  /accounts:
+    get:
+      consumes:
+      - application/json
+      description: Get all accounts for a user
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.AccountWithDetails'
+            type: array
+      summary: List accounts
+      tags:
+      - accounts
+    post:
+      consumes:
+      - application/json
+      description: Create a new account
+      parameters:
+      - description: Account details
+        in: body
+        name: account
+        required: true
+        schema:
+          $ref: '#/definitions/controllers.CreateAccount.createAccountRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.AccountWithDetails'
+      summary: Create account
+      tags:
+      - accounts
+  /accounts/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Get a single account by ID
+      parameters:
+      - description: Account ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.AccountWithDetails'
+      summary: Get account
+      tags:
+      - accounts
+    patch:
+      consumes:
+      - application/json
+      description: Update an existing account
+      parameters:
+      - description: Account ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Account details
+        in: body
+        name: account
+        required: true
+        schema:
+          $ref: '#/definitions/controllers.UpdateAccount.updateAccountRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.AccountWithDetails'
+      summary: Update account
+      tags:
+      - accounts
+  /accounts/{id}/deposit:
+    post:
+      consumes:
+      - application/json
+      description: Deposit money to an account
+      parameters:
+      - description: Account ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Amount to deposit
+        in: body
+        name: amount
+        required: true
+        schema:
+          $ref: '#/definitions/controllers.Deposit.depositRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Deposit money
+      tags:
+      - accounts
+  /accounts/{id}/main:
+    put:
+      consumes:
+      - application/json
+      description: Set an account as the main account
+      parameters:
+      - description: Account ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Set main account
+      tags:
+      - accounts
+  /accounts/{id}/withdraw:
+    post:
+      consumes:
+      - application/json
+      description: Withdraw money from an account
+      parameters:
+      - description: Account ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Amount to withdraw
+        in: body
+        name: amount
+        required: true
+        schema:
+          $ref: '#/definitions/controllers.Withdraw.withdrawRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Withdraw money
+      tags:
+      - accounts
+  /accounts/transfer:
+    post:
+      consumes:
+      - application/json
+      description: Transfer money between accounts
+      parameters:
+      - description: Transfer details
+        in: body
+        name: transfer
+        required: true
+        schema:
+          $ref: '#/definitions/controllers.Transfer.transferRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Transfer money
+      tags:
+      - accounts
   /auth/verify-pin:
     post:
       consumes:
@@ -141,6 +539,135 @@ paths:
       summary: Verify PIN and get JWT token
       tags:
       - Authentication
+  /banners:
+    get:
+      description: List all banners for the current user
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.Banner'
+            type: array
+      summary: List banners
+      tags:
+      - Banners
+  /banners/{id}:
+    get:
+      description: Get a banner by its ID
+      parameters:
+      - description: Banner ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Banner'
+      summary: Get banner by ID
+      tags:
+      - Banners
+  /debit_cards:
+    get:
+      description: List all debit cards for a user
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.DebitCardWithDetails'
+            type: array
+      summary: List debit cards
+      tags:
+      - Debit Cards
+    post:
+      description: Create a new debit card with all its details
+      parameters:
+      - description: Card details
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/controllers.CreateDebitCard.createDebitCardRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.DebitCardWithDetails'
+      summary: Create debit card
+      tags:
+      - Debit Cards
+  /debit_cards/{id}:
+    delete:
+      description: Delete a debit card
+      parameters:
+      - description: Card ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: Card deleted
+          schema:
+            type: string
+      summary: Delete debit card
+      tags:
+      - Debit Cards
+    get:
+      description: Get a specific debit card by ID
+      parameters:
+      - description: Card ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.DebitCardWithDetails'
+      summary: Get debit card
+      tags:
+      - Debit Cards
+    put:
+      description: Update an existing debit card
+      parameters:
+      - description: Card ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Card details
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/controllers.UpdateDebitCard.updateDebitCardRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.DebitCardWithDetails'
+      summary: Update debit card
+      tags:
+      - Debit Cards
   /token/renew:
     post:
       consumes:

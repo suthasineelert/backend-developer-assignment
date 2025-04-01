@@ -23,6 +23,13 @@ func NewDebitCardController(service services.DebitCardService) *DebitCardControl
 }
 
 // ListDebitCards returns all debit cards for a user
+//
+//	@Summary		List debit cards
+//	@Description	List all debit cards for a user
+//	@Tags			Debit Cards
+//	@Produce		json
+//	@Success		200	{object}	[]models.DebitCardWithDetails
+//	@Router			/debit_cards [get]
 func (c *DebitCardController) ListDebitCards(ctx *fiber.Ctx) error {
 	userID := ctx.Locals("userID").(string)
 
@@ -36,6 +43,14 @@ func (c *DebitCardController) ListDebitCards(ctx *fiber.Ctx) error {
 }
 
 // GetDebitCard returns a specific debit card by ID
+//
+//	@Summary		Get debit card
+//	@Description	Get a specific debit card by ID
+//	@Tags			Debit Cards
+//	@Produce		json
+//	@Param			id	path		string	true	"Card ID"
+//	@Success		200	{object}	models.DebitCardWithDetails
+//	@Router			/debit_cards/{id} [get]
 func (c *DebitCardController) GetDebitCard(ctx *fiber.Ctx) error {
 	// Get card_id from path parameters
 	cardID := ctx.Params("id")
@@ -53,6 +68,14 @@ func (c *DebitCardController) GetDebitCard(ctx *fiber.Ctx) error {
 }
 
 // CreateDebitCard creates a new debit card with all its details
+//
+//	@Summary		Create debit card
+//	@Description	Create a new debit card with all its details
+//	@Tags			Debit Cards
+//	@Produce		json
+//	@Param			request	body		controllers.CreateDebitCard.createDebitCardRequest	true	"Card details"
+//	@Success		201		{object}	models.DebitCardWithDetails
+//	@Router			/debit_cards [post]
 func (c *DebitCardController) CreateDebitCard(ctx *fiber.Ctx) error {
 	type createDebitCardRequest struct {
 		Name        string `json:"name" validate:"required,alphanumspace"`
@@ -111,6 +134,15 @@ func (c *DebitCardController) CreateDebitCard(ctx *fiber.Ctx) error {
 }
 
 // UpdateDebitCard updates an existing debit card
+//
+//	@Summary		Update debit card
+//	@Description	Update an existing debit card
+//	@Tags			Debit Cards
+//	@Produce		json
+//	@Param			id		path		string					true	"Card ID"
+//	@Param			request	body		controllers.UpdateDebitCard.updateDebitCardRequest	true	"Card details"
+//	@Success		200		{object}	models.DebitCardWithDetails
+//	@Router			/debit_cards/{id} [put]
 func (c *DebitCardController) UpdateDebitCard(ctx *fiber.Ctx) error {
 	type updateDebitCardRequest struct {
 		Name        string `json:"name" validate:"omitempty,alphanumspace"`
@@ -158,6 +190,14 @@ func (c *DebitCardController) UpdateDebitCard(ctx *fiber.Ctx) error {
 }
 
 // DeleteDebitCard deletes a debit card
+//
+//	@Summary		Delete debit card
+//	@Description	Delete a debit card
+//	@Tags			Debit Cards
+//	@Produce		json
+//	@Param			id	path		string	true	"Card ID"
+//	@Success		204	{string}	string	"Card deleted"
+//	@Router			/debit_cards/{id} [delete]
 func (c *DebitCardController) DeleteDebitCard(ctx *fiber.Ctx) error {
 	// Get card_id from path parameters
 	cardID := ctx.Params("id")
