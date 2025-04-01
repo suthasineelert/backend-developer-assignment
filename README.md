@@ -48,9 +48,9 @@ make docker-compose.up
 
 
 ## TODO
-- [] Unit test for all apis
-- [] Optimized services latency (optional)
-- [] Optimized database schema (optional)
+- [x] Unit test for all apis
+- [x] Optimized services latency (optional) // add redis for caching transaction
+- [x] Optimized database schema (optional) // add index to all tables
 - [] Including services stress test report such as locust, k6 (optional)
 
 ## Updated Schema
@@ -185,6 +185,12 @@ DB_SSL_MODE="disable"
 DB_MAX_CONNECTIONS=100
 DB_MAX_IDLE_CONNECTIONS=10
 DB_MAX_LIFETIME_CONNECTIONS=2
+
+# Redis settings
+REDIS_HOST=localhost
+REDIS_PORT=6379
+REDIS_PASSWORD=""
+REDIS_DB=0
 ```
 
 ## ⚠️ License

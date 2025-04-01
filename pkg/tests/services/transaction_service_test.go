@@ -3,8 +3,12 @@ package services_test
 import (
 	"backend-developer-assignment/app/models"
 	"backend-developer-assignment/app/services"
+	mockCache "backend-developer-assignment/pkg/mocks/cache"
 	mocks "backend-developer-assignment/pkg/mocks/repositories"
+	"context"
+	"encoding/json"
 	"errors"
+	"fmt"
 	"testing"
 	"time"
 
@@ -17,13 +21,15 @@ import (
 type TransactionServiceTestSuite struct {
 	suite.Suite
 	transactionRepository *mocks.TransactionRepository
+	redisClient           *mockCache.RedisClient
 	service               services.TransactionService
 }
 
 // SetupTest runs before each test
 func (s *TransactionServiceTestSuite) SetupTest() {
 	s.transactionRepository = new(mocks.TransactionRepository)
-	s.service = services.NewTransactionService(s.transactionRepository)
+	s.redisClient = new(mockCache.RedisClient)
+	s.service = services.NewTransactionService(s.transactionRepository, s.redisClient)
 }
 
 // TestGetTransactionByID tests the GetTransactionByID function
@@ -89,8 +95,19 @@ func (s *TransactionServiceTestSuite) TestGetTransactionByID() {
 
 	for _, tc := range testCases {
 		s.Run(tc.name, func() {
+			ctx := context.Background()
+			cacheKey := fmt.Sprintf("transaction:%s", tc.transactionID)
+
+			// Mock Redis cache miss
+			s.redisClient.On("Get", ctx, cacheKey).Return("", errors.New("cache miss")).Once()
+
 			// Mock the repository method
 			s.transactionRepository.On("GetByID", tc.transactionID).Return(tc.mockTransaction, tc.mockError).Once()
+
+			if tc.mockError == nil && tc.mockTransaction != nil {
+				// Mock Redis cache set (only for successful DB retrieval)
+				s.redisClient.On("Set", ctx, cacheKey, mock.Anything, mock.Anything).Return(nil).Once()
+			}
 
 			// Call the service method
 			transaction, err := s.service.GetTransactionByID(tc.transactionID)
@@ -107,6 +124,7 @@ func (s *TransactionServiceTestSuite) TestGetTransactionByID() {
 
 			// Verify expected method calls
 			s.transactionRepository.AssertExpectations(s.T())
+			s.redisClient.AssertExpectations(s.T())
 		})
 	}
 }
@@ -337,6 +355,58 @@ func (s *TransactionServiceTestSuite) TestCreateTransaction() {
 			s.transactionRepository.AssertExpectations(s.T())
 		})
 	}
+}
+
+// TestGetTransactionByIDCacheHit tests the GetTransactionByID function with a cache hit
+func (s *TransactionServiceTestSuite) TestGetTransactionByIDCacheHit() {
+	transactionID := "000018b0e1a211ef95a30242ac180002"
+	now := time.Now()
+
+	expectedTransaction := &models.Transaction{
+		TransactionID:   transactionID,
+		UserID:          "000018b0e1a211ef95a30242ac180003",
+		Name:            "Test Transaction",
+		Image:           "transaction.jpg",
+		IsBank:          true,
+		Amount:          100.50,
+		TransactionType: "deposit",
+		BaseModel: &models.BaseModel{
+			CreatedAt: now,
+			UpdatedAt: now,
+		},
+	}
+
+	// Serialize the transaction for the cache
+	cachedData, _ := json.Marshal(expectedTransaction)
+
+	ctx := context.Background()
+	cacheKey := fmt.Sprintf("transaction:%s", transactionID)
+
+	// Mock Redis cache hit
+	s.redisClient.On("Get", ctx, cacheKey).Return(string(cachedData), nil).Once()
+
+	// Call the service method
+	transaction, err := s.service.GetTransactionByID(transactionID)
+
+	// Assert results
+	assert.NoError(s.T(), err)
+	
+	// Compare fields individually, ignoring exact time comparison
+	assert.Equal(s.T(), expectedTransaction.TransactionID, transaction.TransactionID)
+	assert.Equal(s.T(), expectedTransaction.UserID, transaction.UserID)
+	assert.Equal(s.T(), expectedTransaction.Name, transaction.Name)
+	assert.Equal(s.T(), expectedTransaction.Image, transaction.Image)
+	assert.Equal(s.T(), expectedTransaction.IsBank, transaction.IsBank)
+	assert.Equal(s.T(), expectedTransaction.Amount, transaction.Amount)
+	assert.Equal(s.T(), expectedTransaction.TransactionType, transaction.TransactionType)
+	
+	// For time fields, just check if they're not zero
+	assert.False(s.T(), transaction.CreatedAt.IsZero())
+	assert.False(s.T(), transaction.UpdatedAt.IsZero())
+
+	// Verify that repository was not called (cache hit)
+	s.redisClient.AssertExpectations(s.T())
+	s.transactionRepository.AssertNotCalled(s.T(), "GetByID")
 }
 
 // Run the test suite

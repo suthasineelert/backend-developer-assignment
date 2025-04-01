@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"backend-developer-assignment/platform/cache"
 	"log"
 	"os"
 	"os/signal"
@@ -10,7 +11,7 @@ import (
 )
 
 // StartServerWithGracefulShutdown function for starting server with a graceful shutdown.
-func StartServerWithGracefulShutdown(app *fiber.App) {
+func StartServerWithGracefulShutdown(app *fiber.App, redisClient *cache.RedisClient) {
 	// Build Fiber connection URL
 	fiberConnURL, _ := ConnectionURLBuilder("fiber")
 
@@ -34,6 +35,7 @@ func StartServerWithGracefulShutdown(app *fiber.App) {
 	}
 
 	log.Println("Running cleanup tasks...")
+	redisClient.Close()
 
 	log.Println("Fiber was successful shutdown.")
 }

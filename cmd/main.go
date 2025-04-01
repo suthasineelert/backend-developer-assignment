@@ -82,16 +82,18 @@ func main() {
 	// Define a new Fiber app with config.
 	app := fiber.New(config)
 
+	redisClient := configs.RedisConnection()
+
 	// Middlewares.
 	middleware.FiberMiddleware(app) // Register Fiber's middleware for app.
 
 	// Initialize repoList, services, and controllers
 	txProvider := repositories.NewTransactionProvider(db)
 	repoList := repositories.InitRepository(db)
-	serviceList := services.InitService(repoList, txProvider)
+	serviceList := services.InitService(repoList, txProvider, redisClient)
 	controllerList := controllers.InitController(serviceList)
 	// Routes
 	routes.InitRoutes(app, controllerList)
 
-	utils.StartServerWithGracefulShutdown(app)
+	utils.StartServerWithGracefulShutdown(app, redisClient)
 }

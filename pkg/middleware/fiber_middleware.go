@@ -6,6 +6,7 @@ import (
 
 	fiberzap "github.com/gofiber/contrib/fiberzap/v2"
 	fiber "github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/compress"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"go.uber.org/zap"
 )
@@ -21,6 +22,10 @@ func FiberMiddleware(a *fiber.App) {
 		// logger
 		fiberzap.New(fiberzap.Config{
 			Logger: GetLogger(),
+		}),
+		// Compression
+		compress.New(compress.Config{
+			Level: compress.LevelBestSpeed,
 		}),
 	)
 }
