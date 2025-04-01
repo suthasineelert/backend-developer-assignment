@@ -64,7 +64,7 @@ func TestWithdrawRaceCondition(t *testing.T) {
 	assert.NoError(t, err, "Failed to create test account")
 
 	var wg sync.WaitGroup
-	numWorkers := 1 // Simulate 100 concurrent withdrawals
+	numWorkers := 100 // Simulate 100 concurrent withdrawals
 	withdrawAmount := 10.0
 	expectedFinalBalance := initAmount - (float64(numWorkers) * withdrawAmount)
 

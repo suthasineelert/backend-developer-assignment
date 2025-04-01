@@ -35,7 +35,9 @@ func StartServerWithGracefulShutdown(app *fiber.App, redisClient *cache.RedisCli
 	}
 
 	log.Println("Running cleanup tasks...")
-	redisClient.Close()
+	if err := redisClient.Close(); err != nil {
+		log.Fatalf("Redis is not shutting down! Reason: %v", err)
+	}
 
 	log.Println("Fiber was successful shutdown.")
 }

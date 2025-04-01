@@ -8,13 +8,13 @@ import (
 	"github.com/gofiber/fiber/v2/log"
 	migrate "github.com/golang-migrate/migrate/v4"
 	mysql "github.com/golang-migrate/migrate/v4/database/mysql"
-	_ "github.com/golang-migrate/migrate/v4/source/file" // Import the file source driver
+	_ "github.com/golang-migrate/migrate/v4/source/file"
 	"github.com/jmoiron/sqlx"
 )
 
 func getRepoRoot() string {
 	_, filename, _, _ := runtime.Caller(0)
-	return filepath.Join(filepath.Dir(filename), "../") // Adjust as needed
+	return filepath.Join(filepath.Dir(filename), "..")
 }
 
 func Migrate(db *sqlx.DB) error {

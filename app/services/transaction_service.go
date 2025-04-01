@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"go.uber.org/zap"
 )
 
 // Cache expiration time constants
@@ -64,7 +65,9 @@ func (s *TransactionServiceImpl) GetTransactionByID(id string) (*models.Transact
 
 	// Store in cache for future requests
 	if transactionData, err := json.Marshal(transaction); err == nil {
-		s.redisClient.Set(ctx, cacheKey, transactionData, TransactionCacheDuration)
+		if err := s.redisClient.Set(ctx, cacheKey, transactionData, TransactionCacheDuration); err != nil {
+			logger.Warn("Failed to set cache for transaction", zap.String("transaction_id", id), zap.Error(err))
+		}
 	}
 
 	return transaction, nil
@@ -103,8 +106,12 @@ func (s *TransactionServiceImpl) GetTransactionsByUserID(userID string, page int
 
 	// Store in cache for future requests
 	if transactionsData, err := json.Marshal(transactions); err == nil {
-		s.redisClient.Set(ctx, cacheKey, transactionsData, TransactionListCacheDuration)
-		s.redisClient.Set(ctx, countCacheKey, fmt.Sprintf("%d", count), TransactionListCacheDuration)
+		if err := s.redisClient.Set(ctx, cacheKey, transactionsData, TransactionListCacheDuration); err != nil {
+			logger.Warn("Failed to set cache for transactions", zap.String("user_id", userID), zap.Error(err))
+		}
+		if err := s.redisClient.Set(ctx, countCacheKey, fmt.Sprintf("%d", count), TransactionListCacheDuration); err != nil {
+			logger.Warn("Failed to set cache for transactions count", zap.String("user_id", userID), zap.Error(err))
+		}
 	}
 
 	return transactions, count, nil
@@ -131,7 +138,9 @@ func (s *TransactionServiceImpl) CreateTransaction(transaction *models.Transacti
 	// Cache the new transaction
 	cacheKey := fmt.Sprintf("transaction:%s", transaction.TransactionID)
 	if transactionData, err := json.Marshal(transaction); err == nil {
-		s.redisClient.Set(ctx, cacheKey, transactionData, TransactionCacheDuration)
+		if err := s.redisClient.Set(ctx, cacheKey, transactionData, TransactionCacheDuration); err != nil {
+			logger.Warn("Failed to set cache for new transaction", zap.String("transaction_id", transaction.TransactionID), zap.Error(err))
+		}
 	}
 
 	return nil
@@ -139,5 +148,7 @@ func (s *TransactionServiceImpl) CreateTransaction(transaction *models.Transacti
 
 // invalidateCache invalidates cache entries matching the given pattern
 func (s *TransactionServiceImpl) invalidateCache(ctx context.Context, pattern string) {
-	s.redisClient.Delete(ctx, strings.TrimSuffix(pattern, "*"))
+	if err := s.redisClient.Delete(ctx, strings.TrimSuffix(pattern, "*")); err != nil {
+		logger.Warn("Failed to invalidate cache", zap.String("pattern", pattern), zap.Error(err))
+	}
 }

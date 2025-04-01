@@ -44,17 +44,14 @@ func (p *TransactionProvider) Transact(txFunc func(adapters Adapters) error) err
 	})
 }
 
-// type Database interface {
-// 	*sqlx.DB | *sqlx.Tx
-// }
-
-func runInTx[T any](db T, fn func(tx *sqlx.Tx) error) error {
+func runInTx(db interface{}, fn func(tx *sqlx.Tx) error) error {
 	var tx *sqlx.Tx
 	var err error
 	var isTx bool = false
 
 	// Check if db is *sql.DB or *sql.Tx
-	switch d := any(db).(type) {
+	//nolint:all // This type switch is intentional for handling different DB types
+	switch d := db.(type) {
 	case *sqlx.DB:
 		// Begin a new transaction
 		tx, err = d.Beginx()
