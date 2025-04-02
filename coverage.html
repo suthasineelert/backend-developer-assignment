@@ -61,7 +61,7 @@
 				
 				<option value="file2">backend-developer-assignment/app/controllers/banner_controller.go (93.8%)</option>
 				
-				<option value="file3">backend-developer-assignment/app/controllers/controller.go (50.0%)</option>
+				<option value="file3">backend-developer-assignment/app/controllers/controller.go (100.0%)</option>
 				
 				<option value="file4">backend-developer-assignment/app/controllers/debit_card_controller.go (80.6%)</option>
 				
@@ -69,13 +69,13 @@
 				
 				<option value="file6">backend-developer-assignment/app/controllers/user_controller.go (100.0%)</option>
 				
-				<option value="file7">backend-developer-assignment/app/services/account_service.go (58.7%)</option>
+				<option value="file7">backend-developer-assignment/app/services/account_service.go (89.0%)</option>
 				
 				<option value="file8">backend-developer-assignment/app/services/banner_service.go (100.0%)</option>
 				
 				<option value="file9">backend-developer-assignment/app/services/debit_card_service.go (96.0%)</option>
 				
-				<option value="file10">backend-developer-assignment/app/services/service.go (0.0%)</option>
+				<option value="file10">backend-developer-assignment/app/services/service.go (100.0%)</option>
 				
 				<option value="file11">backend-developer-assignment/app/services/transaction_service.go (90.6%)</option>
 				
@@ -118,13 +118,14 @@ func NewAccountController(accountService services.AccountService) *AccountContro
 
 // ListAccounts retrieves all accounts for a user
 //
-//        @Summary                List accounts
-//        @Description        Get all accounts for a user
-//        @Tags                        accounts
-//        @Accept                        json
-//        @Produce                json
-//        @Success                200        {object}        []models.AccountWithDetails
-//        @Router                        /accounts [get]
+//                @Summary                List accounts
+//                @Description        Get all accounts for a user
+//                @Tags                        accounts
+//                @Accept                        json
+//                @Produce                json
+//         @Security ApiKeyAuth
+//                @Success                200        {object}        []models.AccountWithDetails
+//                @Router                        /accounts [get]
 func (ac *AccountController) ListAccounts(ctx *fiber.Ctx) error <span class="cov8" title="1">{
         userID := ctx.Locals("userID").(string)
 
@@ -139,14 +140,15 @@ func (ac *AccountController) ListAccounts(ctx *fiber.Ctx) error <span class="cov
 
 // GetAccount retrieves a single account by ID
 //
-//        @Summary                Get account
-//        @Description        Get a single account by ID
-//        @Tags                        accounts
-//        @Accept                        json
-//        @Produce                json
-//        @Param                        id        path                string        true        "Account ID"
-//        @Success                200        {object}        models.AccountWithDetails
-//        @Router                        /accounts/{id} [get]
+//                @Summary                Get account
+//                @Description        Get a single account by ID
+//                @Tags                        accounts
+//                @Accept                        json
+//                @Produce                json
+//         @Security ApiKeyAuth
+//                @Param                        id        path                string        true        "Account ID"
+//                @Success                200        {object}        models.AccountWithDetails
+//                @Router                        /accounts/{id} [get]
 func (ac *AccountController) GetAccount(ctx *fiber.Ctx) error <span class="cov8" title="1">{
         // Get account_id from path parameters
         accountID := ctx.Params("id")
@@ -165,14 +167,15 @@ func (ac *AccountController) GetAccount(ctx *fiber.Ctx) error <span class="cov8"
 
 // CreateAccount handles account creation
 //
-//        @Summary                Create account
-//        @Description        Create a new account
-//        @Tags                        accounts
-//        @Accept                        json
-//        @Produce                json
-//        @Param                        account        body                controllers.CreateAccount.createAccountRequest        true        "Account details"
-//        @Success                201                {object}        models.AccountWithDetails
-//        @Router                        /accounts [post]
+//                @Summary                Create account
+//                @Description        Create a new account
+//                @Tags                        accounts
+//                @Accept                        json
+//                @Produce                json
+//         @Security ApiKeyAuth
+//                @Param                        account        body                controllers.CreateAccount.createAccountRequest        true        "Account details"
+//                @Success                201                {object}        models.AccountWithDetails
+//                @Router                        /accounts [post]
 func (ac *AccountController) CreateAccount(ctx *fiber.Ctx) error <span class="cov8" title="1">{
         type createAccountRequest struct {
                 Type          string  `json:"type" validate:"required,oneof=saving-account credit-loan goal-driven-saving"`
@@ -236,15 +239,16 @@ func (ac *AccountController) CreateAccount(ctx *fiber.Ctx) error <span class="co
 
 // UpdateAccount updates an existing account
 //
-//        @Summary                Update account
-//        @Description        Update an existing account
-//        @Tags                        accounts
-//        @Accept                        json
-//        @Produce                json
-//        @Param                        id                path                string                                        true        "Account ID"
-//        @Param                        account        body                controllers.UpdateAccount.updateAccountRequest        true        "Account details"
-//        @Success                200                {object}        models.AccountWithDetails
-//        @Router                        /accounts/{id} [patch]
+//                @Summary                Update account
+//                @Description        Update an existing account
+//                @Tags                        accounts
+//                @Accept                        json
+//                @Produce                json
+//         @Security ApiKeyAuth
+//                @Param                        id                path                string                                        true        "Account ID"
+//                @Param                        account        body                controllers.UpdateAccount.updateAccountRequest        true        "Account details"
+//                @Success                200                {object}        models.AccountWithDetails
+//                @Router                        /accounts/{id} [patch]
 func (ac *AccountController) UpdateAccount(ctx *fiber.Ctx) error <span class="cov8" title="1">{
         type updateAccountRequest struct {
                 Type          string `json:"type" validate:"omitempty,oneof=saving-account credit-loan goal-driven-saving"`
@@ -308,14 +312,15 @@ func (ac *AccountController) UpdateAccount(ctx *fiber.Ctx) error <span class="co
 
 // SetMainAccount sets an account as the main account
 //
-//        @Summary                Set main account
-//        @Description        Set an account as the main account
-//        @Tags                        accounts
-//        @Accept                        json
-//        @Produce                json
-//        @Param                        id        path                string        true        "Account ID"
-//        @Success                200        {object}        map[string]string
-//        @Router                        /accounts/{id}/main [put]
+//                @Summary                Set main account
+//                @Description        Set an account as the main account
+//                @Tags                        accounts
+//                @Accept                        json
+//                @Produce                json
+//         @Security ApiKeyAuth
+//                @Param                        id        path                string        true        "Account ID"
+//                @Success                200        {object}        map[string]string
+//                @Router                        /accounts/{id}/main [put]
 func (ac *AccountController) SetMainAccount(ctx *fiber.Ctx) error <span class="cov8" title="1">{
         // Get account_id from path parameters
         accountID := ctx.Params("id")
@@ -339,15 +344,16 @@ func (ac *AccountController) SetMainAccount(ctx *fiber.Ctx) error <span class="c
 
 // Withdraw handles withdrawing money from an account
 //
-//        @Summary                Withdraw money
-//        @Description        Withdraw money from an account
-//        @Tags                        accounts
-//        @Accept                        json
-//        @Produce                json
-//        @Param                        id                path                string                        true        "Account ID"
-//        @Param                        amount        body                controllers.Withdraw.withdrawRequest        true        "Amount to withdraw"
-//        @Success                200                {object}        map[string]interface{}
-//        @Router                        /accounts/{id}/withdraw [post]
+//                @Summary                Withdraw money
+//                @Description        Withdraw money from an account
+//                @Tags                        accounts
+//                @Accept                        json
+//                @Produce                json
+//         @Security ApiKeyAuth
+//                @Param                        id                path                string                        true        "Account ID"
+//                @Param                        amount        body                controllers.Withdraw.withdrawRequest        true        "Amount to withdraw"
+//                @Success                200                {object}        map[string]interface{}
+//                @Router                        /accounts/{id}/withdraw [post]
 func (ac *AccountController) Withdraw(ctx *fiber.Ctx) error <span class="cov8" title="1">{
         type withdrawRequest struct {
                 Amount float64 `json:"amount" validate:"required,gt=0"`
@@ -399,15 +405,16 @@ func (ac *AccountController) Withdraw(ctx *fiber.Ctx) error <span class="cov8" t
 
 // Deposit handles depositing money to an account
 //
-//        @Summary                Deposit money
-//        @Description        Deposit money to an account
-//        @Tags                        accounts
-//        @Accept                        json
-//        @Produce                json
-//        @Param                        id                path                string                        true        "Account ID"
-//        @Param                        amount        body                controllers.Deposit.depositRequest        true        "Amount to deposit"
-//        @Success                200                {object}        map[string]interface{}
-//        @Router                        /accounts/{id}/deposit [post]
+//                @Summary                Deposit money
+//                @Description        Deposit money to an account
+//                @Tags                        accounts
+//                @Accept                        json
+//                @Produce                json
+//         @Security ApiKeyAuth
+//                @Param                        id                path                string                        true        "Account ID"
+//                @Param                        amount        body                controllers.Deposit.depositRequest        true        "Amount to deposit"
+//                @Success                200                {object}        map[string]interface{}
+//                @Router                        /accounts/{id}/deposit [post]
 func (ac *AccountController) Deposit(ctx *fiber.Ctx) error <span class="cov8" title="1">{
         type depositRequest struct {
                 Amount float64 `json:"amount" validate:"required,gt=0"`
@@ -445,14 +452,15 @@ func (ac *AccountController) Deposit(ctx *fiber.Ctx) error <span class="cov8" ti
 
 // Transfer handles transferring money between accounts
 //
-//        @Summary                Transfer money
-//        @Description        Transfer money between accounts
-//        @Tags                        accounts
-//        @Accept                        json
-//        @Produce                json
-//        @Param                        transfer        body                controllers.Transfer.transferRequest        true        "Transfer details"
-//        @Success                200                        {object}        map[string]interface{}
-//        @Router                        /accounts/transfer [post]
+//                @Summary                Transfer money
+//                @Description        Transfer money between accounts
+//                @Tags                        accounts
+//                @Accept                        json
+//                @Produce                json
+//         @Security ApiKeyAuth
+//                @Param                        transfer        body                controllers.Transfer.transferRequest        true        "Transfer details"
+//                @Success                200                        {object}        map[string]interface{}
+//                @Router                        /accounts/transfer [post]
 func (ac *AccountController) Transfer(ctx *fiber.Ctx) error <span class="cov8" title="1">{
         type transferRequest struct {
                 FromAccountID string  `json:"from_account_id" validate:"required"`
@@ -681,13 +689,14 @@ func NewBannerController(bannerService services.BannerService) *BannerController
 
 // GetBannerByID handles the request to get a banner by ID
 //
-//        @Summary                Get banner by ID
-//        @Description        Get a banner by its ID
-//        @Tags                        Banners
-//        @Produce                json
-//        @Param                        id        path                string        true        "Banner ID"
-//        @Success                200        {object}        models.Banner
-//        @Router                        /banners/{id} [get]
+//                @Summary                Get banner by ID
+//                @Description        Get a banner by its ID
+//                @Tags                        Banners
+//                @Produce                json
+//         @Security ApiKeyAuth
+//                @Param                        id        path                string        true        "Banner ID"
+//                @Success                200        {object}        models.Banner
+//                @Router                        /banners/{id} [get]
 func (c *BannerController) GetBanner(ctx *fiber.Ctx) error <span class="cov8" title="1">{
         bannerID := ctx.Params("id")
         if bannerID == "" </span><span class="cov0" title="0">{
@@ -709,12 +718,13 @@ func (c *BannerController) GetBanner(ctx *fiber.Ctx) error <span class="cov8" ti
 
 // ListBanners returns all banners for the current user
 //
-//        @Summary                List banners
-//        @Description        List all banners for the current user
-//        @Tags                        Banners
-//        @Produce                json
-//        @Success                200        {object}        []models.Banner
-//        @Router                        /banners [get]
+//                @Summary                List banners
+//                @Description        List all banners for the current user
+//                @Tags                        Banners
+//                @Produce                json
+//         @Security ApiKeyAuth
+//                @Success                200        {object}        []models.Banner
+//                @Router                        /banners [get]
 func (c *BannerController) ListBanners(ctx *fiber.Ctx) error <span class="cov8" title="1">{
         userID := ctx.Locals("userID").(string)
 
@@ -749,7 +759,7 @@ type Controller struct {
 
 var logger = middleware.GetLogger()
 
-func InitController(service *services.Service) *Controller <span class="cov0" title="0">{
+func InitController(service *services.Service) *Controller <span class="cov8" title="1">{
         return &amp;Controller{
                 AuthController:        *NewAuthController(service.UserService),
                 UserController:        *NewUserController(service.UserService),
@@ -794,12 +804,13 @@ func NewDebitCardController(service services.DebitCardService) *DebitCardControl
 
 // ListDebitCards returns all debit cards for a user
 //
-//        @Summary                List debit cards
-//        @Description        List all debit cards for a user
-//        @Tags                        Debit Cards
-//        @Produce                json
-//        @Success                200        {object}        []models.DebitCardWithDetails
-//        @Router                        /debit_cards [get]
+//                @Summary                List debit cards
+//                @Description        List all debit cards for a user
+//                @Tags                        Debit Cards
+//                @Produce                json
+//         @Security ApiKeyAuth
+//                @Success                200        {object}        []models.DebitCardWithDetails
+//                @Router                        /debit_cards [get]
 func (c *DebitCardController) ListDebitCards(ctx *fiber.Ctx) error <span class="cov8" title="1">{
         userID := ctx.Locals("userID").(string)
 
@@ -814,13 +825,14 @@ func (c *DebitCardController) ListDebitCards(ctx *fiber.Ctx) error <span class="
 
 // GetDebitCard returns a specific debit card by ID
 //
-//        @Summary                Get debit card
-//        @Description        Get a specific debit card by ID
-//        @Tags                        Debit Cards
-//        @Produce                json
-//        @Param                        id        path                string        true        "Card ID"
-//        @Success                200        {object}        models.DebitCardWithDetails
-//        @Router                        /debit_cards/{id} [get]
+//                @Summary                Get debit card
+//                @Description        Get a specific debit card by ID
+//                @Tags                        Debit Cards
+//                @Produce                json
+//         @Security ApiKeyAuth
+//                @Param                        id        path                string        true        "Card ID"
+//                @Success                200        {object}        models.DebitCardWithDetails
+//                @Router                        /debit_cards/{id} [get]
 func (c *DebitCardController) GetDebitCard(ctx *fiber.Ctx) error <span class="cov8" title="1">{
         // Get card_id from path parameters
         cardID := ctx.Params("id")
@@ -839,13 +851,14 @@ func (c *DebitCardController) GetDebitCard(ctx *fiber.Ctx) error <span class="co
 
 // CreateDebitCard creates a new debit card with all its details
 //
-//        @Summary                Create debit card
-//        @Description        Create a new debit card with all its details
-//        @Tags                        Debit Cards
-//        @Produce                json
-//        @Param                        request        body                controllers.CreateDebitCard.createDebitCardRequest        true        "Card details"
-//        @Success                201                {object}        models.DebitCardWithDetails
-//        @Router                        /debit_cards [post]
+//                @Summary                Create debit card
+//                @Description        Create a new debit card with all its details
+//                @Tags                        Debit Cards
+//                @Produce                json
+//         @Security ApiKeyAuth
+//                @Param                        request        body                controllers.CreateDebitCard.createDebitCardRequest        true        "Card details"
+//                @Success                201                {object}        models.DebitCardWithDetails
+//                @Router                        /debit_cards [post]
 func (c *DebitCardController) CreateDebitCard(ctx *fiber.Ctx) error <span class="cov8" title="1">{
         type createDebitCardRequest struct {
                 Name        string `json:"name" validate:"required,alphanumspace"`
@@ -905,14 +918,15 @@ func (c *DebitCardController) CreateDebitCard(ctx *fiber.Ctx) error <span class=
 
 // UpdateDebitCard updates an existing debit card
 //
-//        @Summary                Update debit card
-//        @Description        Update an existing debit card
-//        @Tags                        Debit Cards
-//        @Produce                json
-//        @Param                        id                path                string                                        true        "Card ID"
-//        @Param                        request        body                controllers.UpdateDebitCard.updateDebitCardRequest        true        "Card details"
-//        @Success                200                {object}        models.DebitCardWithDetails
-//        @Router                        /debit_cards/{id} [put]
+//                @Summary                Update debit card
+//                @Description        Update an existing debit card
+//                @Tags                        Debit Cards
+//                @Produce                json
+//         @Security ApiKeyAuth
+//                @Param                        id                path                string                                        true        "Card ID"
+//                @Param                        request        body                controllers.UpdateDebitCard.updateDebitCardRequest        true        "Card details"
+//                @Success                200                {object}        models.DebitCardWithDetails
+//                @Router                        /debit_cards/{id} [put]
 func (c *DebitCardController) UpdateDebitCard(ctx *fiber.Ctx) error <span class="cov8" title="1">{
         type updateDebitCardRequest struct {
                 Name        string `json:"name" validate:"omitempty,alphanumspace"`
@@ -961,13 +975,14 @@ func (c *DebitCardController) UpdateDebitCard(ctx *fiber.Ctx) error <span class=
 
 // DeleteDebitCard deletes a debit card
 //
-//        @Summary                Delete debit card
-//        @Description        Delete a debit card
-//        @Tags                        Debit Cards
-//        @Produce                json
-//        @Param                        id        path                string        true        "Card ID"
-//        @Success                204        {string}        string        "Card deleted"
-//        @Router                        /debit_cards/{id} [delete]
+//                @Summary                Delete debit card
+//                @Description        Delete a debit card
+//                @Tags                        Debit Cards
+//                @Produce                json
+//         @Security ApiKeyAuth
+//                @Param                        id        path                string        true        "Card ID"
+//                @Success                204        {string}        string        "Card deleted"
+//                @Router                        /debit_cards/{id} [delete]
 func (c *DebitCardController) DeleteDebitCard(ctx *fiber.Ctx) error <span class="cov8" title="1">{
         // Get card_id from path parameters
         cardID := ctx.Params("id")
@@ -1019,6 +1034,7 @@ func NewTransactionController(transactionService services.TransactionService) *T
 // @Tags Transactions
 // @Accept json
 // @Produce json
+// @Security ApiKeyAuth
 // @Param page query int false "Page number"
 // @Success 200 {object} object{transactions=[]models.Transaction,total=int} "List of transactions"
 // @Failure 400 {object} base.ErrorResponse "Invalid input format"
@@ -1164,7 +1180,7 @@ func (c *UserController) UpdateUserGreeting(ctx *fiber.Ctx) error <span class="c
 // @Success 200 {object} models.User "Returns the user information"
 // @Failure 401 {object} base.ErrorResponse "Unauthorized - Invalid or missing token"
 // @Failure 404 {object} base.ErrorResponse "User not found"
-// @Router /user [get]
+// @Router /user/profile [get]
 func (c *UserController) GetUser(ctx *fiber.Ctx) error <span class="cov8" title="1">{
         var user *models.User
 
@@ -1284,69 +1300,69 @@ func (s *AccountServiceImpl) GetAccountsWithDetailByUserID(userID string) ([]*mo
 }</span>
 
 // CreateAccountWithDetails creates a new account with all related details
-func (s *AccountServiceImpl) CreateAccountWithDetails(accountWithDetails *models.AccountWithDetails) error <span class="cov0" title="0">{
+func (s *AccountServiceImpl) CreateAccountWithDetails(accountWithDetails *models.AccountWithDetails) error <span class="cov8" title="1">{
         // Generate a new UUID if not provided
-        if accountWithDetails.AccountID == "" </span><span class="cov0" title="0">{
+        if accountWithDetails.AccountID == "" </span><span class="cov8" title="1">{
                 accountWithDetails.AccountID = uuid.New().String()
         }</span>
 
-        <span class="cov0" title="0">if err := s.accountRepository.CreateAccount(accountWithDetails); err != nil </span><span class="cov0" title="0">{
+        <span class="cov8" title="1">if err := s.accountRepository.CreateAccount(accountWithDetails); err != nil </span><span class="cov8" title="1">{
                 return err
         }</span>
 
-        <span class="cov0" title="0">return nil</span>
+        <span class="cov8" title="1">return nil</span>
 }
 
 // UpdateAccount updates an existing account
-func (s *AccountServiceImpl) UpdateAccount(account *models.AccountWithDetails) error <span class="cov0" title="0">{
-        return s.accountRepository.UpdateAccountByID(account.AccountID, account.UserID, func(accountWithDetails *models.AccountWithDetails) (bool, error) </span><span class="cov0" title="0">{
+func (s *AccountServiceImpl) UpdateAccount(account *models.AccountWithDetails) error <span class="cov8" title="1">{
+        return s.accountRepository.UpdateAccountByID(account.AccountID, account.UserID, func(accountWithDetails *models.AccountWithDetails) (bool, error) </span><span class="cov8" title="1">{
                 isUpdate := false
 
                 // Update account fields
-                if account.Type != "" &amp;&amp; accountWithDetails.Type != account.Type </span><span class="cov0" title="0">{
+                if account.Type != "" &amp;&amp; accountWithDetails.Type != account.Type </span><span class="cov8" title="1">{
                         accountWithDetails.Type = account.Type
                         isUpdate = true
                 }</span>
-                <span class="cov0" title="0">if account.Currency != "" &amp;&amp; accountWithDetails.Currency != account.Currency </span><span class="cov0" title="0">{
+                <span class="cov8" title="1">if account.Currency != "" &amp;&amp; accountWithDetails.Currency != account.Currency </span><span class="cov8" title="1">{
                         accountWithDetails.Currency = account.Currency
                         isUpdate = true
                 }</span>
-                <span class="cov0" title="0">if account.AccountNumber != "" &amp;&amp; accountWithDetails.AccountNumber != account.AccountNumber </span><span class="cov0" title="0">{
+                <span class="cov8" title="1">if account.AccountNumber != "" &amp;&amp; accountWithDetails.AccountNumber != account.AccountNumber </span><span class="cov8" title="1">{
                         accountWithDetails.AccountNumber = account.AccountNumber
                         isUpdate = true
                 }</span>
-                <span class="cov0" title="0">if account.Issuer != "" &amp;&amp; accountWithDetails.Issuer != account.Issuer </span><span class="cov0" title="0">{
+                <span class="cov8" title="1">if account.Issuer != "" &amp;&amp; accountWithDetails.Issuer != account.Issuer </span><span class="cov8" title="1">{
                         accountWithDetails.Issuer = account.Issuer
                         isUpdate = true
                 }</span>
 
                 // Update account detail fields
-                <span class="cov0" title="0">if account.Color != "" &amp;&amp; accountWithDetails.Color != account.Color </span><span class="cov0" title="0">{
+                <span class="cov8" title="1">if account.Color != "" &amp;&amp; accountWithDetails.Color != account.Color </span><span class="cov8" title="1">{
                         accountWithDetails.Color = account.Color
                         isUpdate = true
                 }</span>
-                <span class="cov0" title="0">if account.Progress &gt; 0 &amp;&amp; accountWithDetails.Progress != account.Progress </span><span class="cov0" title="0">{
+                <span class="cov8" title="1">if account.Progress &gt; 0 &amp;&amp; accountWithDetails.Progress != account.Progress </span><span class="cov8" title="1">{
                         accountWithDetails.Progress = account.Progress
                         isUpdate = true
                 }</span>
 
-                <span class="cov0" title="0">return isUpdate, nil</span>
+                <span class="cov8" title="1">return isUpdate, nil</span>
         })
 }
 
-// UpdateAccount updates an existing account
-func (s *AccountServiceImpl) SetMainAccount(account *models.Account) error <span class="cov0" title="0">{
-        if err := s.accountRepository.UnSetMainAccount(account.UserID); err != nil </span><span class="cov0" title="0">{
+// SetMainAccount sets a specific account as the main account for a user
+func (s *AccountServiceImpl) SetMainAccount(account *models.Account) error <span class="cov8" title="1">{
+        if err := s.accountRepository.UnSetMainAccount(account.UserID); err != nil </span><span class="cov8" title="1">{
                 logger.Error("Unable to unset main account", zap.String("account_id", account.AccountID), zap.String("user_id", account.UserID), zap.Error(err))
                 return err
         }</span>
 
-        <span class="cov0" title="0">if err := s.accountRepository.SetMainAccount(account.AccountID, account.UserID); err != nil </span><span class="cov0" title="0">{
+        <span class="cov8" title="1">if err := s.accountRepository.SetMainAccount(account.AccountID, account.UserID); err != nil </span><span class="cov8" title="1">{
                 logger.Error("Unable to set main account", zap.String("account_id", account.AccountID), zap.String("user_id", account.UserID), zap.Error(err))
                 return err
         }</span>
 
-        <span class="cov0" title="0">return nil</span>
+        <span class="cov8" title="1">return nil</span>
 }
 
 // WithdrawFromAccount withdraws money from an account with proper locking to prevent race conditions
@@ -1729,7 +1745,7 @@ func (s *DebitCardServiceImpl) DeleteCard(cardID string) error <span class="cov8
 import (
         "backend-developer-assignment/app/repositories"
         "backend-developer-assignment/pkg/middleware"
-        "backend-developer-assignment/platform/cache"
+        "backend-developer-assignment/pkg/types"
 )
 
 type Service struct {
@@ -1742,7 +1758,7 @@ type Service struct {
 
 var logger = middleware.GetLogger()
 
-func InitService(repo *repositories.Repository, txProvider repositories.TxProvider, redisClient *cache.RedisClient) *Service <span class="cov0" title="0">{
+func InitService(repo *repositories.Repository, txProvider repositories.TxProvider, redisClient types.CacheClient) *Service <span class="cov8" title="1">{
         return &amp;Service{
                 UserService:        NewUserService(repo.UserRepository, repo.UserGreetingsRepository),
                 TransactionService: NewTransactionService(repo.TransactionRepository, redisClient),

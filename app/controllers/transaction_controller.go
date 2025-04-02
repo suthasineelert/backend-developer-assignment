@@ -27,6 +27,7 @@ func NewTransactionController(transactionService services.TransactionService) *T
 // @Tags Transactions
 // @Accept json
 // @Produce json
+// @Security ApiKeyAuth
 // @Param page query int false "Page number"
 // @Success 200 {object} object{transactions=[]models.Transaction,total=int} "List of transactions"
 // @Failure 400 {object} base.ErrorResponse "Invalid input format"

@@ -109,7 +109,7 @@ func (r *DebitCardRepositoryImpl) GetCardWithDetailByUserID(userID string) ([]*m
 // GetCardByID retrieves a debit card by ID
 func (r *DebitCardRepositoryImpl) GetCardByID(cardID string) (*models.DebitCard, error) {
 	card := &models.DebitCard{}
-	query := `SELECT * FROM debit_cards WHERE card_id = ? AND deleted_at IS NULL`
+	query := `SELECT card_id, user_id, name, created_at, updated_at FROM debit_cards WHERE card_id = ? AND deleted_at IS NULL`
 	err := r.DB.Get(card, query, cardID)
 	if err != nil {
 		return nil, err
@@ -120,7 +120,7 @@ func (r *DebitCardRepositoryImpl) GetCardByID(cardID string) (*models.DebitCard,
 // GetCardsByUserID retrieves all debit cards for a user
 func (r *DebitCardRepositoryImpl) GetCardsByUserID(userID string) ([]*models.DebitCard, error) {
 	cards := []*models.DebitCard{}
-	query := `SELECT * FROM debit_cards WHERE user_id = ? AND deleted_at IS NULL`
+	query := `SELECT card_id, user_id, name, created_at, updated_at FROM debit_cards WHERE user_id = ? AND deleted_at IS NULL`
 	err := r.DB.Select(&cards, query, userID)
 	if err != nil {
 		return nil, err
@@ -131,7 +131,7 @@ func (r *DebitCardRepositoryImpl) GetCardsByUserID(userID string) ([]*models.Deb
 // GetCardDetailByID retrieves card details by card ID
 func (r *DebitCardRepositoryImpl) GetCardDetailByID(cardID string) (*models.DebitCardDetail, error) {
 	detail := &models.DebitCardDetail{}
-	query := `SELECT * FROM debit_card_details WHERE card_id = ?`
+	query := `SELECT card_id, user_id, issuer, number FROM debit_card_details WHERE card_id = ?`
 	err := r.DB.Get(detail, query, cardID)
 	if err != nil {
 		return nil, err
@@ -142,7 +142,7 @@ func (r *DebitCardRepositoryImpl) GetCardDetailByID(cardID string) (*models.Debi
 // GetCardDesignByID retrieves card design by card ID
 func (r *DebitCardRepositoryImpl) GetCardDesignByID(cardID string) (*models.DebitCardDesign, error) {
 	design := &models.DebitCardDesign{}
-	query := `SELECT * FROM debit_card_design WHERE card_id = ?`
+	query := `SELECT card_id, user_id, color, border_color FROM debit_card_design WHERE card_id = ?`
 	err := r.DB.Get(design, query, cardID)
 	if err != nil {
 		return nil, err
@@ -153,7 +153,7 @@ func (r *DebitCardRepositoryImpl) GetCardDesignByID(cardID string) (*models.Debi
 // GetCardStatusByID retrieves card status by card ID
 func (r *DebitCardRepositoryImpl) GetCardStatusByID(cardID string) (*models.DebitCardStatus, error) {
 	status := &models.DebitCardStatus{}
-	query := `SELECT * FROM debit_card_status WHERE card_id = ?`
+	query := `SELECT card_id, user_id, status FROM debit_card_status WHERE card_id = ?`
 	err := r.DB.Get(status, query, cardID)
 	if err != nil {
 		return nil, err

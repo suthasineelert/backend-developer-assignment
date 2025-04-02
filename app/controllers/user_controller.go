@@ -110,7 +110,7 @@ func (c *UserController) UpdateUserGreeting(ctx *fiber.Ctx) error {
 // @Success 200 {object} models.User "Returns the user information"
 // @Failure 401 {object} base.ErrorResponse "Unauthorized - Invalid or missing token"
 // @Failure 404 {object} base.ErrorResponse "User not found"
-// @Router /user [get]
+// @Router /user/profile [get]
 func (c *UserController) GetUser(ctx *fiber.Ctx) error {
 	var user *models.User
 

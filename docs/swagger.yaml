@@ -320,6 +320,8 @@ paths:
             items:
               $ref: '#/definitions/models.AccountWithDetails'
             type: array
+      security:
+      - ApiKeyAuth: []
       summary: List accounts
       tags:
       - accounts
@@ -341,6 +343,8 @@ paths:
           description: Created
           schema:
             $ref: '#/definitions/models.AccountWithDetails'
+      security:
+      - ApiKeyAuth: []
       summary: Create account
       tags:
       - accounts
@@ -362,6 +366,8 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/models.AccountWithDetails'
+      security:
+      - ApiKeyAuth: []
       summary: Get account
       tags:
       - accounts
@@ -388,6 +394,8 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/models.AccountWithDetails'
+      security:
+      - ApiKeyAuth: []
       summary: Update account
       tags:
       - accounts
@@ -416,6 +424,8 @@ paths:
           schema:
             additionalProperties: true
             type: object
+      security:
+      - ApiKeyAuth: []
       summary: Deposit money
       tags:
       - accounts
@@ -439,6 +449,8 @@ paths:
             additionalProperties:
               type: string
             type: object
+      security:
+      - ApiKeyAuth: []
       summary: Set main account
       tags:
       - accounts
@@ -467,6 +479,8 @@ paths:
           schema:
             additionalProperties: true
             type: object
+      security:
+      - ApiKeyAuth: []
       summary: Withdraw money
       tags:
       - accounts
@@ -490,6 +504,8 @@ paths:
           schema:
             additionalProperties: true
             type: object
+      security:
+      - ApiKeyAuth: []
       summary: Transfer money
       tags:
       - accounts
@@ -551,6 +567,8 @@ paths:
             items:
               $ref: '#/definitions/models.Banner'
             type: array
+      security:
+      - ApiKeyAuth: []
       summary: List banners
       tags:
       - Banners
@@ -570,10 +588,12 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/models.Banner'
+      security:
+      - ApiKeyAuth: []
       summary: Get banner by ID
       tags:
       - Banners
-  /debit_cards:
+  /debit-cards:
     get:
       description: List all debit cards for a user
       produces:
@@ -585,6 +605,8 @@ paths:
             items:
               $ref: '#/definitions/models.DebitCardWithDetails'
             type: array
+      security:
+      - ApiKeyAuth: []
       summary: List debit cards
       tags:
       - Debit Cards
@@ -604,10 +626,12 @@ paths:
           description: Created
           schema:
             $ref: '#/definitions/models.DebitCardWithDetails'
+      security:
+      - ApiKeyAuth: []
       summary: Create debit card
       tags:
       - Debit Cards
-  /debit_cards/{id}:
+  /debit-cards/{id}:
     delete:
       description: Delete a debit card
       parameters:
@@ -623,6 +647,8 @@ paths:
           description: Card deleted
           schema:
             type: string
+      security:
+      - ApiKeyAuth: []
       summary: Delete debit card
       tags:
       - Debit Cards
@@ -641,6 +667,8 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/models.DebitCardWithDetails'
+      security:
+      - ApiKeyAuth: []
       summary: Get debit card
       tags:
       - Debit Cards
@@ -665,6 +693,8 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/models.DebitCardWithDetails'
+      security:
+      - ApiKeyAuth: []
       summary: Update debit card
       tags:
       - Debit Cards
@@ -728,34 +758,11 @@ paths:
           description: Failed to retrieve transactions
           schema:
             $ref: '#/definitions/base.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
       summary: List transactions
       tags:
       - Transactions
-  /user:
-    get:
-      consumes:
-      - application/json
-      description: Retrieves the information of the authenticated user
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Returns the user information
-          schema:
-            $ref: '#/definitions/models.User'
-        "401":
-          description: Unauthorized - Invalid or missing token
-          schema:
-            $ref: '#/definitions/base.ErrorResponse'
-        "404":
-          description: User not found
-          schema:
-            $ref: '#/definitions/base.ErrorResponse'
-      security:
-      - ApiKeyAuth: []
-      summary: Get user's information
-      tags:
-      - User
   /user/greeting:
     get:
       consumes:
@@ -818,6 +825,31 @@ paths:
       security:
       - ApiKeyAuth: []
       summary: Update user's greeting message
+      tags:
+      - User
+  /user/profile:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves the information of the authenticated user
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Returns the user information
+          schema:
+            $ref: '#/definitions/models.User'
+        "401":
+          description: Unauthorized - Invalid or missing token
+          schema:
+            $ref: '#/definitions/base.ErrorResponse'
+        "404":
+          description: User not found
+          schema:
+            $ref: '#/definitions/base.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Get user's information
       tags:
       - User
 securityDefinitions:

@@ -3,7 +3,7 @@ package services
 import (
 	"backend-developer-assignment/app/repositories"
 	"backend-developer-assignment/pkg/middleware"
-	"backend-developer-assignment/platform/cache"
+	"backend-developer-assignment/pkg/types"
 )
 
 type Service struct {
@@ -16,7 +16,7 @@ type Service struct {
 
 var logger = middleware.GetLogger()
 
-func InitService(repo *repositories.Repository, txProvider repositories.TxProvider, redisClient *cache.RedisClient) *Service {
+func InitService(repo *repositories.Repository, txProvider repositories.TxProvider, redisClient types.CacheClient) *Service {
 	return &Service{
 		UserService:        NewUserService(repo.UserRepository, repo.UserGreetingsRepository),
 		TransactionService: NewTransactionService(repo.TransactionRepository, redisClient),

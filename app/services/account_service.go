@@ -126,7 +126,7 @@ func (s *AccountServiceImpl) UpdateAccount(account *models.AccountWithDetails) e
 	})
 }
 
-// UpdateAccount updates an existing account
+// SetMainAccount sets a specific account as the main account for a user
 func (s *AccountServiceImpl) SetMainAccount(account *models.Account) error {
 	if err := s.accountRepository.UnSetMainAccount(account.UserID); err != nil {
 		logger.Error("Unable to unset main account", zap.String("account_id", account.AccountID), zap.String("user_id", account.UserID), zap.Error(err))

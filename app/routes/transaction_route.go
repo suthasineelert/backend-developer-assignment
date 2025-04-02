@@ -9,6 +9,6 @@ import (
 
 func TransactionRoute(route fiber.Router, controller *controllers.Controller) {
 	// Group user routes with JWT protection
-	transactionRoutes := route.Group("/transaction", middleware.AuthProtected()...)
+	transactionRoutes := route.Group("/transactions", middleware.AuthProtected()...)
 	transactionRoutes.Get("", controller.TransactionController.ListTransactions)
 }

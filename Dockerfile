@@ -1,47 +1,36 @@
-FROM golang:1.23 AS base
-ARG VERSION=latest
+FROM golang:1.23-alpine AS builder
 
-# Ignore APT warnings about not having a TTY
-ENV DEBIAN_FRONTEND noninteractive
-ENV VERSION=$VERSION
+WORKDIR /app
 
-WORKDIR /go/app
+# Copy go mod and sum files
+COPY go.mod go.sum ./
 
-ENV GO111MODULE="on"
-ENV GOOS="linux"
-ENV CGO_ENABLED=0
+# Download dependencies
+RUN go mod download
 
-RUN echo "Building version: ${VERSION}"
-
-# Application dependencies
+# Copy source code
 COPY . .
 
-RUN go mod download \
-    && go mod verify
+# Build the application
+RUN CGO_ENABLED=0 GOOS=linux go build -o main ./cmd/main.go
 
-ENV APP_ENV=docker
-RUN go build -o app
+# Create final lightweight image
+FROM alpine:latest
 
-### Production
-FROM alpine:3.16
-WORKDIR /usr/local/bin
+WORKDIR /app
 
-ARG VERSION=latest
-ENV VERSION=$VERSION
+# Install necessary runtime dependencies
+RUN apk --no-cache add ca-certificates tzdata
 
-# Setup non-root user
-ENV user=swadm
-ENV gid=1001
-ENV uid=1001
+# Copy the binary from builder
+COPY --from=builder /app/main .
+COPY --from=builder /app/platform/migrations ./platform/migrations
 
-RUN addgroup --gid 1001 $user &&  \
-    adduser --disabled-password --uid $uid -G $user $user
+# Make the binary executable
+RUN chmod +x ./main
 
-# Copy executable
-COPY --from=base --chown=$user:$user /go/app/app /usr/local/bin/app
+# Expose the application port
+EXPOSE 8080
 
-USER $user
-ENV APP_ENV=dev
-
-EXPOSE ${PORT} 
-CMD ["./app"]
+# Run the application
+CMD ["./main"]

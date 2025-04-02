@@ -10,6 +10,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
@@ -396,6 +397,305 @@ func (s *AccountServiceTestSuite) TestGetAccountsWithDetailByUserID() {
 	}
 }
 
+// TestCreateAccountWithDetailsWithProvidedID tests creating an account with a provided ID
+func (s *AccountServiceTestSuite) TestCreateAccountWithDetailsWithProvidedID() {
+	// Create test data
+	accountID := "test-account-id"
+	userID := "test-user-id"
+	accountWithDetails := &models.AccountWithDetails{
+		AccountID:     accountID,
+		UserID:        userID,
+		Type:          "savings",
+		Currency:      "USD",
+		AccountNumber: "123456789",
+		Issuer:        "Test Bank",
+		Amount:        1000.00,
+		IsMainAccount: false,
+		Color:         "#FF5733",
+		Progress:      75,
+	}
+
+	// Mock repository behavior
+	s.accountRepository.On("CreateAccount", accountWithDetails).Return(nil).Once()
+
+	// Call the service method
+	err := s.service.CreateAccountWithDetails(accountWithDetails)
+
+	// Assert results
+	assert.NoError(s.T(), err)
+	assert.Equal(s.T(), accountID, accountWithDetails.AccountID)
+	s.accountRepository.AssertExpectations(s.T())
+}
+
+// TestCreateAccountWithDetailsWithGeneratedID tests creating an account with a generated ID
+func (s *AccountServiceTestSuite) TestCreateAccountWithDetailsWithGeneratedID() {
+	// Create test data
+	userID := "test-user-id"
+	accountWithDetails := &models.AccountWithDetails{
+		AccountID:     "",
+		UserID:        userID,
+		Type:          "savings",
+		Currency:      "USD",
+		AccountNumber: "123456789",
+		Issuer:        "Test Bank",
+		Amount:        1000.00,
+		IsMainAccount: false,
+		Color:         "#FF5733",
+		Progress:      75,
+	}
+
+	// Mock repository behavior with ID matcher
+	s.accountRepository.On("CreateAccount", mock.MatchedBy(func(a *models.AccountWithDetails) bool {
+		// Verify that an ID was generated (non-empty)
+		return a.AccountID != "" && a.UserID == userID
+	})).Return(nil).Once()
+
+	// Call the service method
+	err := s.service.CreateAccountWithDetails(accountWithDetails)
+
+	// Assert results
+	assert.NoError(s.T(), err)
+	assert.NotEmpty(s.T(), accountWithDetails.AccountID)
+	_, err = uuid.Parse(accountWithDetails.AccountID)
+	assert.NoError(s.T(), err) // ID should be a valid UUID
+	s.accountRepository.AssertExpectations(s.T())
+}
+
+// TestCreateAccountWithDetailsError tests creating an account with a repository error
+func (s *AccountServiceTestSuite) TestCreateAccountWithDetailsError() {
+	// Create test data
+	accountID := "test-account-id"
+	userID := "test-user-id"
+	accountWithDetails := &models.AccountWithDetails{
+		AccountID:     accountID,
+		UserID:        userID,
+		Type:          "savings",
+		Currency:      "USD",
+		AccountNumber: "123456789",
+		Issuer:        "Test Bank",
+		Amount:        1000.00,
+		IsMainAccount: false,
+		Color:         "#FF5733",
+		Progress:      75,
+	}
+
+	// Mock repository error
+	expectedError := errors.New("database error")
+	s.accountRepository.On("CreateAccount", accountWithDetails).Return(expectedError).Once()
+
+	// Call the service method
+	err := s.service.CreateAccountWithDetails(accountWithDetails)
+
+	// Assert results
+	assert.Error(s.T(), err)
+	assert.Equal(s.T(), expectedError, err)
+	s.accountRepository.AssertExpectations(s.T())
+}
+
+// TestUpdateAccountWithChanges tests updating an account with changes
+func (s *AccountServiceTestSuite) TestUpdateAccountWithChanges() {
+	// Create test data
+	accountID := "test-account-id"
+	userID := "test-user-id"
+	account := &models.AccountWithDetails{
+		AccountID:     accountID,
+		UserID:        userID,
+		Type:          "credit-loan",
+		Currency:      "EUR",
+		AccountNumber: "987654321",
+		Issuer:        "New Bank",
+		Amount:        1000.00,
+		IsMainAccount: false,
+		Color:         "#33FF57",
+		Progress:      90,
+	}
+
+	// Mock repository behavior
+	s.accountRepository.On("UpdateAccountByID", accountID, userID, mock.AnythingOfType("func(*models.AccountWithDetails) (bool, error)")).
+		Run(func(args mock.Arguments) {
+			// Extract the callback function
+			callback := args.Get(2).(func(*models.AccountWithDetails) (bool, error))
+
+			// Create a mock existing account
+			existingAccount := &models.AccountWithDetails{
+				AccountID:     accountID,
+				UserID:        userID,
+				Type:          "savings",
+				Currency:      "USD",
+				AccountNumber: "123456789",
+				Issuer:        "Test Bank",
+				Color:         "#FFF554",
+				Progress:      75,
+			}
+
+			// Call the callback
+			isUpdate, err := callback(existingAccount)
+
+			// Assert callback results
+			assert.True(s.T(), isUpdate)
+			assert.NoError(s.T(), err)
+			assert.Equal(s.T(), "credit-loan", existingAccount.Type)
+			assert.Equal(s.T(), "EUR", existingAccount.Currency)
+			assert.Equal(s.T(), "987654321", existingAccount.AccountNumber)
+			assert.Equal(s.T(), "New Bank", existingAccount.Issuer)
+			assert.Equal(s.T(), "#33FF57", existingAccount.Color)
+			assert.Equal(s.T(), 90, existingAccount.Progress)
+		}).
+		Return(nil).Once()
+
+	// Call the service method
+	err := s.service.UpdateAccount(account)
+
+	// Assert results
+	assert.NoError(s.T(), err)
+	s.accountRepository.AssertExpectations(s.T())
+}
+
+// TestUpdateAccountWithNoChanges tests updating an account with no changes
+func (s *AccountServiceTestSuite) TestUpdateAccountWithNoChanges() {
+	// Create test data
+	accountID := "test-account-id"
+	userID := "test-user-id"
+	account := &models.AccountWithDetails{
+		AccountID: accountID,
+		UserID:    userID,
+		// Empty fields should not trigger updates
+	}
+
+	// Mock repository behavior
+	s.accountRepository.On("UpdateAccountByID", accountID, userID, mock.AnythingOfType("func(*models.AccountWithDetails) (bool, error)")).
+		Run(func(args mock.Arguments) {
+			// Extract the callback function
+			callback := args.Get(2).(func(*models.AccountWithDetails) (bool, error))
+
+			// Create a mock existing account
+			existingAccount := &models.AccountWithDetails{
+				AccountID:     accountID,
+				UserID:        userID,
+				Type:          "savings",
+				Currency:      "USD",
+				AccountNumber: "123456789",
+				Issuer:        "Test Bank",
+				Color:         "#FF5733",
+				Progress:      75,
+			}
+
+			// Call the callback
+			isUpdate, err := callback(existingAccount)
+
+			// Assert callback results
+			assert.False(s.T(), isUpdate)
+			assert.NoError(s.T(), err)
+			assert.Equal(s.T(), "savings", existingAccount.Type) // Unchanged
+			assert.Equal(s.T(), "USD", existingAccount.Currency) // Unchanged
+		}).
+		Return(nil).Once()
+
+	// Call the service method
+	err := s.service.UpdateAccount(account)
+
+	// Assert results
+	assert.NoError(s.T(), err)
+	s.accountRepository.AssertExpectations(s.T())
+}
+
+// TestUpdateAccountError tests updating an account with a repository error
+func (s *AccountServiceTestSuite) TestUpdateAccountError() {
+	// Create test data
+	accountID := "test-account-id"
+	userID := "test-user-id"
+	account := &models.AccountWithDetails{
+		AccountID: accountID,
+		UserID:    userID,
+		Type:      "checking",
+	}
+
+	// Mock repository error
+	expectedError := errors.New("database error")
+	s.accountRepository.On("UpdateAccountByID", accountID, userID, mock.AnythingOfType("func(*models.AccountWithDetails) (bool, error)")).
+		Return(expectedError).Once()
+
+	// Call the service method
+	err := s.service.UpdateAccount(account)
+
+	// Assert results
+	assert.Error(s.T(), err)
+	assert.Equal(s.T(), expectedError, err)
+	s.accountRepository.AssertExpectations(s.T())
+}
+
+// TestSetMainAccountSuccess tests setting an account as the main account successfully
+func (s *AccountServiceTestSuite) TestSetMainAccountSuccess() {
+	// Create test data
+	accountID := "test-account-id"
+	userID := "test-user-id"
+	account := &models.Account{
+		AccountID: accountID,
+		UserID:    userID,
+	}
+
+	// Mock repository behavior
+	s.accountRepository.On("UnSetMainAccount", userID).Return(nil).Once()
+	s.accountRepository.On("SetMainAccount", accountID, userID).Return(nil).Once()
+
+	// Call the service method
+	err := s.service.SetMainAccount(account)
+
+	// Assert results
+	assert.NoError(s.T(), err)
+	s.accountRepository.AssertExpectations(s.T())
+}
+
+// TestSetMainAccountUnsetError tests setting an account as main with an error during unset
+func (s *AccountServiceTestSuite) TestSetMainAccountUnsetError() {
+	// Create test data
+	accountID := "test-account-id"
+	userID := "test-user-id"
+	account := &models.Account{
+		AccountID: accountID,
+		UserID:    userID,
+	}
+
+	// Mock repository error
+	expectedError := errors.New("database error")
+	s.accountRepository.On("UnSetMainAccount", userID).Return(expectedError).Once()
+
+	// Call the service method
+	err := s.service.SetMainAccount(account)
+
+	// Assert results
+	assert.Error(s.T(), err)
+	assert.Equal(s.T(), expectedError, err)
+	s.accountRepository.AssertExpectations(s.T())
+	s.accountRepository.AssertNotCalled(s.T(), "SetMainAccount")
+}
+
+// TestSetMainAccountSetError tests setting an account as main with an error during set
+func (s *AccountServiceTestSuite) TestSetMainAccountSetError() {
+	// Create test data
+	accountID := "test-account-id"
+	userID := "test-user-id"
+	account := &models.Account{
+		AccountID: accountID,
+		UserID:    userID,
+	}
+
+	// Mock repository behavior
+	s.accountRepository.On("UnSetMainAccount", userID).Return(nil).Once()
+
+	// Mock repository error
+	expectedError := errors.New("database error")
+	s.accountRepository.On("SetMainAccount", accountID, userID).Return(expectedError).Once()
+
+	// Call the service method
+	err := s.service.SetMainAccount(account)
+
+	// Assert results
+	assert.Error(s.T(), err)
+	assert.Equal(s.T(), expectedError, err)
+	s.accountRepository.AssertExpectations(s.T())
+}
+
 func (s *AccountServiceTestSuite) TestTransferBetweenAccounts() {
 	fromAccountID := "acc-123"
 	toAccountID := "acc-456"
@@ -703,7 +1003,7 @@ func (s *AccountServiceTestSuite) TestWithdrawFromAccount() {
 						// For transaction creation error, balance update succeeds
 						updateBalanceErr = nil
 					}
-					
+
 					s.accountRepository.On("UpdateAccountBalance", accountID,
 						mock.AnythingOfType("func(float64) (float64, error)")).
 						Return(updateBalanceErr).

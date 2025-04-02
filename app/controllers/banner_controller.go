@@ -21,13 +21,14 @@ func NewBannerController(bannerService services.BannerService) *BannerController
 
 // GetBannerByID handles the request to get a banner by ID
 //
-//	@Summary		Get banner by ID
-//	@Description	Get a banner by its ID
-//	@Tags			Banners
-//	@Produce		json
-//	@Param			id	path		string	true	"Banner ID"
-//	@Success		200	{object}	models.Banner
-//	@Router			/banners/{id} [get]
+//		@Summary		Get banner by ID
+//		@Description	Get a banner by its ID
+//		@Tags			Banners
+//		@Produce		json
+//	 @Security ApiKeyAuth
+//		@Param			id	path		string	true	"Banner ID"
+//		@Success		200	{object}	models.Banner
+//		@Router			/banners/{id} [get]
 func (c *BannerController) GetBanner(ctx *fiber.Ctx) error {
 	bannerID := ctx.Params("id")
 	if bannerID == "" {
@@ -49,12 +50,13 @@ func (c *BannerController) GetBanner(ctx *fiber.Ctx) error {
 
 // ListBanners returns all banners for the current user
 //
-//	@Summary		List banners
-//	@Description	List all banners for the current user
-//	@Tags			Banners
-//	@Produce		json
-//	@Success		200	{object}	[]models.Banner
-//	@Router			/banners [get]
+//		@Summary		List banners
+//		@Description	List all banners for the current user
+//		@Tags			Banners
+//		@Produce		json
+//	 @Security ApiKeyAuth
+//		@Success		200	{object}	[]models.Banner
+//		@Router			/banners [get]
 func (c *BannerController) ListBanners(ctx *fiber.Ctx) error {
 	userID := ctx.Locals("userID").(string)
 

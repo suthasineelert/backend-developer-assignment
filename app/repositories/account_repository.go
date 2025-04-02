@@ -171,7 +171,7 @@ func (r *AccountRepositoryImpl) GetAccountsWithDetailByUserID(userID string) ([]
 // GetAccountByID retrieves an account by ID
 func (r *AccountRepositoryImpl) GetAccountByID(accountID string) (*models.Account, error) {
 	account := &models.Account{}
-	query := `SELECT * FROM accounts WHERE account_id = ? AND deleted_at IS NULL`
+	query := `SELECT account_id, user_id, type, currency, account_number, issuer, created_at, updated_at FROM accounts WHERE account_id = ? AND deleted_at IS NULL`
 	err := r.DB.Get(account, query, accountID)
 	if err != nil {
 		return nil, err
@@ -182,7 +182,7 @@ func (r *AccountRepositoryImpl) GetAccountByID(accountID string) (*models.Accoun
 // GetAccountsByUserID retrieves all accounts for a user
 func (r *AccountRepositoryImpl) GetAccountsByUserID(userID string) ([]*models.Account, error) {
 	accounts := []*models.Account{}
-	query := `SELECT * FROM accounts WHERE user_id = ? AND deleted_at IS NULL`
+	query := `SELECT account_id, user_id, type, currency, account_number, issuer, created_at, updated_at FROM accounts WHERE user_id = ? AND deleted_at IS NULL`
 	err := r.DB.Select(&accounts, query, userID)
 	if err != nil {
 		return nil, err
@@ -193,7 +193,7 @@ func (r *AccountRepositoryImpl) GetAccountsByUserID(userID string) ([]*models.Ac
 // GetAccountDetailByID retrieves account details by account ID
 func (r *AccountRepositoryImpl) GetAccountDetailByID(accountID string) (*models.AccountDetail, error) {
 	detail := &models.AccountDetail{}
-	query := `SELECT * FROM account_details WHERE account_id = ? AND deleted_at IS NULL`
+	query := `SELECT account_id, user_id, color, is_main_account, progress FROM account_details WHERE account_id = ? AND deleted_at IS NULL`
 	err := r.DB.Get(detail, query, accountID)
 	if err != nil {
 		return nil, err
@@ -204,7 +204,7 @@ func (r *AccountRepositoryImpl) GetAccountDetailByID(accountID string) (*models.
 // GetAccountBalanceByID retrieves account balance by account ID
 func (r *AccountRepositoryImpl) GetAccountBalanceByID(accountID string) (*models.AccountBalance, error) {
 	balance := &models.AccountBalance{}
-	query := `SELECT * FROM account_balances WHERE account_id = ? AND deleted_at IS NULL`
+	query := `SELECT account_id, user_id, amount FROM account_balances WHERE account_id = ? AND deleted_at IS NULL`
 	err := r.DB.Get(balance, query, accountID)
 	if err != nil {
 		return nil, err
@@ -215,7 +215,7 @@ func (r *AccountRepositoryImpl) GetAccountBalanceByID(accountID string) (*models
 // GetAccountFlagsByAccountID retrieves all flags for an account
 func (r *AccountRepositoryImpl) GetAccountFlagsByAccountID(accountID string) ([]*models.AccountFlag, error) {
 	flags := []*models.AccountFlag{}
-	query := `SELECT * FROM account_flags WHERE account_id = ? AND deleted_at IS NULL`
+	query := `SELECT flag_id, account_id, user_id, flag_type, flag_value FROM account_flags WHERE account_id = ? AND deleted_at IS NULL`
 	err := r.DB.Select(&flags, query, accountID)
 	if err != nil {
 		return nil, err

@@ -25,6 +25,11 @@ const docTemplate = `{
     "paths": {
         "/accounts": {
             "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "description": "Get all accounts for a user",
                 "consumes": [
                     "application/json"
@@ -49,6 +54,11 @@ const docTemplate = `{
                 }
             },
             "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "description": "Create a new account",
                 "consumes": [
                     "application/json"
@@ -83,6 +93,11 @@ const docTemplate = `{
         },
         "/accounts/transfer": {
             "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "description": "Transfer money between accounts",
                 "consumes": [
                     "application/json"
@@ -118,6 +133,11 @@ const docTemplate = `{
         },
         "/accounts/{id}": {
             "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "description": "Get a single account by ID",
                 "consumes": [
                     "application/json"
@@ -148,6 +168,11 @@ const docTemplate = `{
                 }
             },
             "patch": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "description": "Update an existing account",
                 "consumes": [
                     "application/json"
@@ -189,6 +214,11 @@ const docTemplate = `{
         },
         "/accounts/{id}/deposit": {
             "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "description": "Deposit money to an account",
                 "consumes": [
                     "application/json"
@@ -231,6 +261,11 @@ const docTemplate = `{
         },
         "/accounts/{id}/main": {
             "put": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "description": "Set an account as the main account",
                 "consumes": [
                     "application/json"
@@ -266,6 +301,11 @@ const docTemplate = `{
         },
         "/accounts/{id}/withdraw": {
             "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "description": "Withdraw money from an account",
                 "consumes": [
                     "application/json"
@@ -379,6 +419,11 @@ const docTemplate = `{
         },
         "/banners": {
             "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "description": "List all banners for the current user",
                 "produces": [
                     "application/json"
@@ -402,6 +447,11 @@ const docTemplate = `{
         },
         "/banners/{id}": {
             "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "description": "Get a banner by its ID",
                 "produces": [
                     "application/json"
@@ -429,8 +479,13 @@ const docTemplate = `{
                 }
             }
         },
-        "/debit_cards": {
+        "/debit-cards": {
             "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "description": "List all debit cards for a user",
                 "produces": [
                     "application/json"
@@ -452,6 +507,11 @@ const docTemplate = `{
                 }
             },
             "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "description": "Create a new debit card with all its details",
                 "produces": [
                     "application/json"
@@ -481,8 +541,13 @@ const docTemplate = `{
                 }
             }
         },
-        "/debit_cards/{id}": {
+        "/debit-cards/{id}": {
             "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "description": "Get a specific debit card by ID",
                 "produces": [
                     "application/json"
@@ -510,6 +575,11 @@ const docTemplate = `{
                 }
             },
             "put": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "description": "Update an existing debit card",
                 "produces": [
                     "application/json"
@@ -546,6 +616,11 @@ const docTemplate = `{
                 }
             },
             "delete": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "description": "Delete a debit card",
                 "produces": [
                     "application/json"
@@ -614,6 +689,11 @@ const docTemplate = `{
         },
         "/transactions": {
             "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "description": "Retrieves all transactions for a user.",
                 "consumes": [
                     "application/json"
@@ -665,46 +745,6 @@ const docTemplate = `{
                     },
                     "500": {
                         "description": "Failed to retrieve transactions",
-                        "schema": {
-                            "$ref": "#/definitions/base.ErrorResponse"
-                        }
-                    }
-                }
-            }
-        },
-        "/user": {
-            "get": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "description": "Retrieves the information of the authenticated user",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "User"
-                ],
-                "summary": "Get user's information",
-                "responses": {
-                    "200": {
-                        "description": "Returns the user information",
-                        "schema": {
-                            "$ref": "#/definitions/models.User"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized - Invalid or missing token",
-                        "schema": {
-                            "$ref": "#/definitions/base.ErrorResponse"
-                        }
-                    },
-                    "404": {
-                        "description": "User not found",
                         "schema": {
                             "$ref": "#/definitions/base.ErrorResponse"
                         }
@@ -806,6 +846,46 @@ const docTemplate = `{
                     },
                     "500": {
                         "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/base.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/user/profile": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Retrieves the information of the authenticated user",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "User"
+                ],
+                "summary": "Get user's information",
+                "responses": {
+                    "200": {
+                        "description": "Returns the user information",
+                        "schema": {
+                            "$ref": "#/definitions/models.User"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized - Invalid or missing token",
+                        "schema": {
+                            "$ref": "#/definitions/base.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "User not found",
                         "schema": {
                             "$ref": "#/definitions/base.ErrorResponse"
                         }

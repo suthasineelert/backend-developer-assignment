@@ -1,6 +1,6 @@
 # Backend Developer Assignment
 
-<img src="https://img.shields.io/badge/Go-1.23-00ADD8?style=for-the-badge&logo=go" alt="go version" />&nbsp;<a href="https://goreportcard.com/report/github.com/create-go-app/fiber-go-template" target="_blank">
+<img src="https://img.shields.io/badge/Go-1.23-00ADD8?style=for-the-badge&logo=go" alt="go version" />&nbsp;<img src="https://img.shields.io/badge/Test%20Coverage-91.3%25-success?style=for-the-badge" alt="test coverage" />&nbsp;<a href="https://goreportcard.com/report/github.com/create-go-app/fiber-go-template" target="_blank">
 
 [Fiber](https://gofiber.io/) is an Express.js inspired web framework build on top of Fasthttp, the fastest HTTP engine for Go. Designed to ease things up for **fast** development with **zero memory allocation** and **performance** in mind.
 
@@ -20,6 +20,7 @@
 
 ```bash
 make docker-compose.up
+make seed.pins
 ```
 
 5. Go to API Docs page (Swagger): [http://localhost:8080/swagger/index.html](http://localhost:8080/swagger/index.html)
@@ -47,11 +48,26 @@ make docker-compose.up
 - Database transaction will be handled in repository layer, but the logic will be pass through function
 
 
-## TODO
+## Extra Tasks
 - [x] Unit test for all apis
 - [x] Optimized services latency (optional) // add redis for caching transaction
 - [x] Optimized database schema (optional) // add index to all tables
-- [] Including services stress test report such as locust, k6 (optional)
+- [x] Including services stress test report such as locust, k6 (optional)
+
+## Stress Testing
+The project includes stress tests using k6 to measure API performance under load.
+
+### Running stress tests
+```bash
+# Run basic API test
+make stress.basic
+
+# Run transaction-specific test
+make stress.transactions
+
+# Generate a test report
+make stress.report
+```
 
 ## Updated Schema
 - Add column `pin` to `users` table
@@ -103,6 +119,15 @@ make seed.pins
 ```bash
 make test
 ```
+
+### View test coverage
+The project has a test coverage of 91.3% as shown in the generated coverage.html file.
+
+```bash
+make coverage
+ ```
+
+Then open the generated coverage.html file in your browser to see detailed coverage information.
 
 ### Create mocks for test
 
