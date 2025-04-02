@@ -9,7 +9,6 @@ export let options = {
         { duration: '30s', target: 0 },    // Ramp down to 0 users
     ],
 };
-// eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3NDM1ODEwNDQsImlkIjoiMDAwMDE4YjBlMWEyMTFlZjk1YTMwMjQyYWMxODAwMDIifQ.ipWJQDKsT5xmdPfwcRgogmvQ1nfbbYeQ8RnOeIFBY08
 // Define base URL and authentication token (modify as needed)
 const BASE_URL = 'http://localhost:8080'; // Change to your API URL
 
