@@ -46,25 +46,20 @@ make seed.pins
 
 ## Key Notes
 - Database transaction will be handled in repository layer, but the logic will be pass through function
+- In case that the transaction need to be maintained between multiple repositories, txProvider will be used to pass the transaction to the repository
 
 
 ## Extra Tasks
 - [x] Unit test for all apis
 - [x] Optimized services latency (optional) // add redis for caching transaction
 - [x] Optimized database schema (optional) // add index to all tables
-- [x] Including services stress test report such as locust, k6 (optional)
+- [x] Including services stress test report such as locust, k6 (optional) // for transaction list api only
 
 ## Stress Testing
 The project includes stress tests using k6 to measure API performance under load.
 
 ### Running stress tests
 ```bash
-# Run basic API test
-make stress.basic
-
-# Run transaction-specific test
-make stress.transactions
-
 # Generate a test report
 make stress.report
 ```

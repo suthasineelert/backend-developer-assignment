@@ -810,7 +810,7 @@ func NewDebitCardController(service services.DebitCardService) *DebitCardControl
 //                @Produce                json
 //         @Security ApiKeyAuth
 //                @Success                200        {object}        []models.DebitCardWithDetails
-//                @Router                        /debit_cards [get]
+//                @Router                        /debit-cards [get]
 func (c *DebitCardController) ListDebitCards(ctx *fiber.Ctx) error <span class="cov8" title="1">{
         userID := ctx.Locals("userID").(string)
 
@@ -832,7 +832,7 @@ func (c *DebitCardController) ListDebitCards(ctx *fiber.Ctx) error <span class="
 //         @Security ApiKeyAuth
 //                @Param                        id        path                string        true        "Card ID"
 //                @Success                200        {object}        models.DebitCardWithDetails
-//                @Router                        /debit_cards/{id} [get]
+//                @Router                        /debit-cards/{id} [get]
 func (c *DebitCardController) GetDebitCard(ctx *fiber.Ctx) error <span class="cov8" title="1">{
         // Get card_id from path parameters
         cardID := ctx.Params("id")
@@ -858,7 +858,7 @@ func (c *DebitCardController) GetDebitCard(ctx *fiber.Ctx) error <span class="co
 //         @Security ApiKeyAuth
 //                @Param                        request        body                controllers.CreateDebitCard.createDebitCardRequest        true        "Card details"
 //                @Success                201                {object}        models.DebitCardWithDetails
-//                @Router                        /debit_cards [post]
+//                @Router                        /debit-cards [post]
 func (c *DebitCardController) CreateDebitCard(ctx *fiber.Ctx) error <span class="cov8" title="1">{
         type createDebitCardRequest struct {
                 Name        string `json:"name" validate:"required,alphanumspace"`
@@ -926,7 +926,7 @@ func (c *DebitCardController) CreateDebitCard(ctx *fiber.Ctx) error <span class=
 //                @Param                        id                path                string                                        true        "Card ID"
 //                @Param                        request        body                controllers.UpdateDebitCard.updateDebitCardRequest        true        "Card details"
 //                @Success                200                {object}        models.DebitCardWithDetails
-//                @Router                        /debit_cards/{id} [put]
+//                @Router                        /debit-cards/{id} [put]
 func (c *DebitCardController) UpdateDebitCard(ctx *fiber.Ctx) error <span class="cov8" title="1">{
         type updateDebitCardRequest struct {
                 Name        string `json:"name" validate:"omitempty,alphanumspace"`
@@ -982,7 +982,7 @@ func (c *DebitCardController) UpdateDebitCard(ctx *fiber.Ctx) error <span class=
 //         @Security ApiKeyAuth
 //                @Param                        id        path                string        true        "Card ID"
 //                @Success                204        {string}        string        "Card deleted"
-//                @Router                        /debit_cards/{id} [delete]
+//                @Router                        /debit-cards/{id} [delete]
 func (c *DebitCardController) DeleteDebitCard(ctx *fiber.Ctx) error <span class="cov8" title="1">{
         // Get card_id from path parameters
         cardID := ctx.Params("id")
